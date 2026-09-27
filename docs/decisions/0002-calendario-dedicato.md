@@ -22,8 +22,9 @@ distinguerle dagli altri eventi e capire a quale cliente appartengono.
 
 ## Conseguenze
 
-- Il filtro è gratuito (un solo calendario) e il permesso richiesto può essere il più stretto
-  possibile. Lo scope esatto (`calendar.events.owned.readonly` o `calendar.readonly`) si
-  verifica nello spike del passo 1.
+- Il filtro è gratuito (un solo calendario) e il permesso richiesto è il più stretto
+  possibile: `calendar.calendarlist.readonly` per scegliere il calendario e
+  `calendar.events.owned.readonly` per leggerne gli eventi. Verificato nello spike del passo 1
+  su un calendario reale (81 eventi, 12 titoli distinti).
 - Gli omonimi vanno distinti nel titolo (`Filippo`, `Filippo O.`): gli alias lo rendono
   esplicito invece che fragile.
