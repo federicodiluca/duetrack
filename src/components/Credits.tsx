@@ -5,7 +5,7 @@ export function Credits() {
   return (
     <p className="text-sm text-muted-foreground">
       Duetrack è un progetto di{' '}
-      <a className={link} href="https://federicodiluca.com/chi-sono/" target="_blank" rel="noopener">
+      <a className={link} href="https://federicodiluca.com/" target="_blank" rel="noopener">
         Federico Di Luca
       </a>
       . Scopri gli{' '}

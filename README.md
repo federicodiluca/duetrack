@@ -51,7 +51,7 @@ src/
 
 ## Autore
 
-Duetrack è ideato e sviluppato da **[Federico Di Luca](https://federicodiluca.com/chi-sono/)**,
+Duetrack è ideato e sviluppato da **[Federico Di Luca](https://federicodiluca.com/)**,
 sviluppatore software e docente. Altri progetti su
 **[federicodiluca.com/progetti](https://federicodiluca.com/progetti/)**.
 
