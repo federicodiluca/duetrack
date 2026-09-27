@@ -1,18 +1,21 @@
-import { Trash2 } from 'lucide-react'
+import { Copy, Share2, Trash2 } from 'lucide-react'
 import { useState } from 'react'
+import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { addManualSession, removeRate, setAmount, setRate } from '@/core/actions'
-import type { LedgerSession } from '@/core/ledger'
+import { Textarea } from '@/components/ui/textarea'
+import type { ClientSummary, LedgerSession } from '@/core/ledger'
 import { type Client, SINCE_ALWAYS, toIsoDate } from '@/core/model'
 import { centsToInput, formatMoney, parseMoney } from '@/core/money'
 import { formatDuration } from '@/core/session'
 import { formatDay, formatIsoDate } from '@/lib/format'
 import { newId } from '@/lib/id'
 import { useData } from '@/state/data'
+import { reminderText } from './reminder'
 
 interface DialogProps {
   onOpenChange: (open: boolean) => void
@@ -198,6 +201,60 @@ export function ManualSessionDialog({ client, onOpenChange }: DialogProps & { cl
             <Button type="submit">Aggiungi</Button>
           </DialogFooter>
         </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+/**
+ * Il promemoria di pagamento: testo pronto da copiare o condividere (dal telefono apre il
+ * menu di condivisione, quindi anche WhatsApp). Si può modificare prima di mandarlo.
+ */
+export function ReminderDialog({ summary, currency, onOpenChange }: DialogProps & { summary: ClientSummary; currency: string }) {
+  const [text, setText] = useState(() => reminderText(summary, currency))
+  const canShare = typeof navigator.share === 'function'
+
+  async function copy() {
+    try {
+      await navigator.clipboard.writeText(text)
+      toast.success('Promemoria copiato')
+      onOpenChange(false)
+    } catch {
+      toast.error('Non riesco a copiare: seleziona il testo e copialo a mano')
+    }
+  }
+
+  async function share() {
+    try {
+      await navigator.share({ text })
+      onOpenChange(false)
+    } catch (e) {
+      // Chiudere il menu di condivisione non è un errore.
+      if (!(e instanceof DOMException && e.name === 'AbortError')) toast.error('Condivisione non riuscita')
+    }
+  }
+
+  return (
+    <Dialog open onOpenChange={onOpenChange}>
+      <DialogContent>
+        <DialogHeader>
+          <DialogTitle>Promemoria per {summary.client.name}</DialogTitle>
+          <DialogDescription>Il riepilogo delle sessioni da saldare. Modificalo come preferisci prima di mandarlo.</DialogDescription>
+        </DialogHeader>
+        <Label htmlFor="reminder-text" className="sr-only">
+          Testo del promemoria
+        </Label>
+        <Textarea id="reminder-text" value={text} onChange={(e) => setText(e.target.value)} className="max-h-80 font-mono text-sm" />
+        <DialogFooter>
+          {canShare && (
+            <Button variant="outline" onClick={share}>
+              <Share2 /> Condividi
+            </Button>
+          )}
+          <Button onClick={copy}>
+            <Copy /> Copia
+          </Button>
+        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

@@ -94,6 +94,17 @@ export function ReportIcon(props: IconProps) {
   )
 }
 
+/** Fumetto con le righe di un messaggio: il promemoria da mandare al cliente. */
+export function ReminderIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.5V17H6.5A2.5 2.5 0 0 1 4 14.5Z" {...tint} />
+      <path d="M4 6.5A2.5 2.5 0 0 1 6.5 4h11A2.5 2.5 0 0 1 20 6.5v8a2.5 2.5 0 0 1-2.5 2.5H10l-4.5 3.5V17H6.5A2.5 2.5 0 0 1 4 14.5Z" />
+      <path d="M8 8.5h8M8 12h5" />
+    </Icon>
+  )
+}
+
 /** Foglio con la freccia in giù: esportare i dati. */
 export function ExportIcon(props: IconProps) {
   return (

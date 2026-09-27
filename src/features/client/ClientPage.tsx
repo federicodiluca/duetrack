@@ -4,7 +4,7 @@ import { Link, useLocation, useParams } from 'wouter'
 import { toast } from 'sonner'
 import { ClientDialog } from '@/components/ClientDialog'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
-import { CalendarAddIcon, CoinCheckIcon, CoinStackIcon } from '@/components/icons'
+import { CalendarAddIcon, CoinCheckIcon, CoinStackIcon, ReminderIcon } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -34,7 +34,7 @@ import { formatDay, formatIsoDate, formatTime, pluralize } from '@/lib/format'
 import { newId } from '@/lib/id'
 import { useCalendar } from '@/state/calendar'
 import { useData } from '@/state/data'
-import { AmountDialog, ManualSessionDialog, PayOldestDialog, RatesDialog } from './dialogs'
+import { AmountDialog, ManualSessionDialog, PayOldestDialog, RatesDialog, ReminderDialog } from './dialogs'
 import { SessionRow } from './SessionRow'
 
 type OpenDialog =
@@ -42,6 +42,7 @@ type OpenDialog =
   | { kind: 'rates' }
   | { kind: 'manual' }
   | { kind: 'pay-oldest' }
+  | { kind: 'reminder' }
   | { kind: 'delete' }
   | { kind: 'amount'; session: LedgerSession }
   | { kind: 'confirm-pay'; sessions: LedgerSession[] }
@@ -198,6 +199,9 @@ export function ClientPage() {
           <Button variant="outline" disabled={due.length === 0} onClick={() => setDialog({ kind: 'pay-oldest' })}>
             <CoinStackIcon /> Pagate N sessioni…
           </Button>
+          <Button variant="outline" disabled={due.length === 0} onClick={() => setDialog({ kind: 'reminder' })}>
+            <ReminderIcon /> Promemoria
+          </Button>
           <Button variant="ghost" onClick={() => setDialog({ kind: 'manual' })}>
             <CalendarAddIcon /> Sessione a mano
           </Button>
@@ -314,6 +318,7 @@ export function ClientPage() {
       {dialog?.kind === 'manual' && <ManualSessionDialog client={client} onOpenChange={close} />}
       {dialog?.kind === 'amount' && <AmountDialog session={dialog.session} onOpenChange={close} />}
       {dialog?.kind === 'pay-oldest' && <PayOldestDialog due={due} currency={data.currency} onPay={pay} onOpenChange={close} />}
+      {dialog?.kind === 'reminder' && <ReminderDialog summary={summary} currency={data.currency} onOpenChange={close} />}
       <ConfirmDialog
         open={dialog?.kind === 'confirm-pay'}
         onOpenChange={(open) => !open && close()}
