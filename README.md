@@ -16,6 +16,8 @@ resta l'unica cosa da aggiornare: niente più note parallele da tenere allineate
 - **Importo proporzionale**: 1h30 a 20 €/h fa 30 €. Ogni importo si può correggere a mano.
 - **"Pagare da"**: per chi paga dopo un periodo, imposti una data e vedi ore e totale da lì
   in poi; un tocco segna pagato tutto il blocco, e si può annullare.
+- **Da classificare**: gli eventi che non corrispondono a nessun cliente non spariscono.
+  Diventano un cliente nuovo, un alias di uno esistente, o un titolo da ignorare.
 - **Nessun server**: l'app gira nel browser. I tuoi dati stanno sul tuo dispositivo e sul
   tuo Google Drive, in un file che solo Duetrack può vedere. Il calendario viene solo letto.
 
@@ -25,14 +27,26 @@ Node 22.
 
 ```bash
 npm install
-npm run dev
-npm test          # logica pura in src/core
+npm run dev              # con il tuo account Google
+npm run demo             # senza login: calendario e clienti inventati
+npm test                 # logica pura in src/core
 npm run lint
 npm run build
+npm run icons:build      # rigenera le icone da scripts/icon-source.svg
 ```
 
-Stack: Vite, React, TypeScript, Vitest, oxlint. Google Identity Services per il login,
-API REST di Google Calendar chiamate direttamente dal browser.
+Stack: Vite, React, TypeScript, Tailwind, shadcn/ui (Radix), wouter, Vitest, oxlint.
+Google Identity Services per il login, API REST di Google Calendar chiamate direttamente dal
+browser, IndexedDB per i dati locali.
+
+```text
+src/
+  core/        logica pura e testata: modello, registro, importi, azioni
+  google/      login e chiamate alle API Google
+  state/       stato React: dati salvati, accesso, calendario
+  features/    panoramica · cliente · da classificare · impostazioni
+  components/  componenti condivisi (ui/ = shadcn)
+```
 
 ## Autore
 

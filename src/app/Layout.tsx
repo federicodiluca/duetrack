@@ -1,0 +1,57 @@
+import { RefreshCw } from 'lucide-react'
+import type { ReactNode } from 'react'
+import { Link } from 'wouter'
+import { Credits } from '@/components/Credits'
+import { Button } from '@/components/ui/button'
+import { cn } from '@/lib/utils'
+import { formatTime } from '@/lib/format'
+import { useCalendar } from '@/state/calendar'
+
+const navLink = (isActive: boolean) =>
+  cn(
+    'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground',
+    isActive && 'bg-secondary text-foreground',
+  )
+
+export function Layout({ children }: { children: ReactNode }) {
+  const { status, loadedAt, reload, ledger } = useCalendar()
+  const unclassified = new Set(ledger.unclassified.map((s) => s.key)).size
+
+  return (
+    <div className="mx-auto flex min-h-dvh max-w-3xl flex-col px-4">
+      <header className="flex flex-wrap items-center justify-between gap-3 py-4">
+        <Link to="/" className="flex items-center gap-2.5 font-heading text-lg font-semibold">
+          <img src="/favicon.svg" alt="" className="size-7" />
+          Duetrack
+        </Link>
+        <Button variant="ghost" size="sm" onClick={reload} disabled={status === 'loading'} title="Rileggi il calendario">
+          <RefreshCw className={cn(status === 'loading' && 'animate-spin')} />
+          {status === 'loading' ? 'Aggiorno…' : loadedAt ? `Aggiornato alle ${formatTime(loadedAt)}` : 'Aggiorna'}
+        </Button>
+      </header>
+
+      <nav className="-mx-2.5 flex flex-wrap gap-1 pb-4" aria-label="Sezioni">
+        <Link to="/" className={navLink}>
+          Chi deve cosa
+        </Link>
+        <Link to="/da-classificare" className={navLink}>
+          Da classificare
+          {unclassified > 0 && (
+            <span className="rounded-full bg-brand px-1.5 text-xs font-semibold text-brand-foreground tabular-nums">{unclassified}</span>
+          )}
+        </Link>
+        <Link to="/impostazioni" className={navLink}>
+          Impostazioni
+        </Link>
+      </nav>
+
+      <main className="flex-1 pb-10">
+        {children}
+      </main>
+
+      <footer className="border-t py-6">
+        <Credits />
+      </footer>
+    </div>
+  )
+}

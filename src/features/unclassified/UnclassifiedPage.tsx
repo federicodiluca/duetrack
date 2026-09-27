@@ -1,0 +1,90 @@
+import { Plus } from 'lucide-react'
+import { useState } from 'react'
+import { ClientDialog } from '@/components/ClientDialog'
+import { Button } from '@/components/ui/button'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { addAlias, excludeTitle } from '@/core/actions'
+import { formatDuration, groupByTitle, type SessionGroup } from '@/core/session'
+import type { LedgerSession } from '@/core/ledger'
+import { formatDay, pluralize } from '@/lib/format'
+import { useCalendar } from '@/state/calendar'
+import { useData } from '@/state/data'
+
+function GroupCard({ group, onCreate }: { group: SessionGroup<LedgerSession>; onCreate: () => void }) {
+  const { data, apply } = useData()
+  const first = group.sessions[0]
+  const last = group.sessions[group.sessions.length - 1]
+  const ambiguous = first.match?.kind === 'ambiguous' ? first.match.clientIds : []
+  const names = ambiguous.map((id) => data.clients.find((c) => c.id === id)?.name).filter(Boolean)
+
+  return (
+    <li className="grid gap-3 rounded-lg border bg-card p-4">
+      <div className="grid gap-0.5">
+        <span className="font-medium">{group.label || '(senza titolo)'}</span>
+        <span className="text-sm text-muted-foreground">
+          {pluralize(group.sessions.length, 'evento', 'eventi')} · {formatDuration(group.totalMinutes)} ·{' '}
+          {group.sessions.length === 1 ? formatDay(first.start) : `dal ${formatDay(first.start)} al ${formatDay(last.start)}`}
+        </span>
+        {names.length > 0 && (
+          <span className="text-sm text-destructive">Corrisponde a più clienti: {names.join(', ')}. Rendi diversi nomi e alias.</span>
+        )}
+      </div>
+      <div className="flex flex-wrap gap-2">
+        <Button size="sm" onClick={onCreate}>
+          <Plus /> Nuovo cliente
+        </Button>
+        {data.clients.length > 0 && (
+          <Select onValueChange={(clientId) => apply((d) => addAlias(d, clientId, group.label))}>
+            <SelectTrigger size="sm" className="w-fit">
+              <SelectValue placeholder="È un cliente esistente…" />
+            </SelectTrigger>
+            <SelectContent>
+              {data.clients.map((c) => (
+                <SelectItem key={c.id} value={c.id}>
+                  {c.name}
+                </SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+        )}
+        <Button size="sm" variant="ghost" onClick={() => apply((d) => excludeTitle(d, group.key))}>
+          Non sono sessioni
+        </Button>
+      </div>
+    </li>
+  )
+}
+
+export function UnclassifiedPage() {
+  const { ledger, status } = useCalendar()
+  const [creatingFor, setCreatingFor] = useState<string>()
+  const groups = groupByTitle(ledger.unclassified)
+
+  return (
+    <div className="grid gap-6">
+      <div className="grid gap-1">
+        <h1 className="font-heading text-2xl font-semibold">Da classificare</h1>
+        <p className="text-muted-foreground">
+          Eventi del calendario che non corrispondono a nessun cliente, raggruppati per titolo. Una scelta vale anche per i
+          prossimi eventi con lo stesso titolo.
+        </p>
+      </div>
+
+      {groups.length === 0 ? (
+        <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
+          {status === 'loading' ? 'Leggo il calendario…' : 'Tutto classificato.'}
+        </p>
+      ) : (
+        <ul className="grid gap-3">
+          {groups.map((group) => (
+            <GroupCard key={group.key} group={group} onCreate={() => setCreatingFor(group.label)} />
+          ))}
+        </ul>
+      )}
+
+      {creatingFor !== undefined && (
+        <ClientDialog open onOpenChange={(open) => !open && setCreatingFor(undefined)} suggestedName={creatingFor} />
+      )}
+    </div>
+  )
+}

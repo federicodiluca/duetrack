@@ -10,6 +10,9 @@ export type IsoDate = string
 /** "cal:<id evento Google>" oppure "man:<id sessione manuale>". */
 export type SessionId = `cal:${string}` | `man:${string}`
 
+/** Data di inizio di una tariffa valida "da sempre": precede qualunque sessione. */
+export const SINCE_ALWAYS: IsoDate = '0000-01-01'
+
 export interface Rate {
   /** Da quando vale questa tariffa (compreso). */
   from: IsoDate
