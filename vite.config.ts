@@ -1,13 +1,44 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { fileURLToPath, URL } from 'node:url'
-import { defineConfig } from 'vite'
+import { defineConfig, type Plugin } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
+
+/**
+ * Content-Security-Policy: il browser carica ed esegue solo ciò che è elencato qui. Se uno
+ * script riuscisse a entrare nella pagina (XSS) non potrebbe mandare il token Google altrove.
+ * Sta in un <meta> perché GitHub Pages non permette header HTTP; solo nella build, perché il
+ * server di sviluppo di Vite usa script inline che la policy bloccherebbe.
+ */
+const CSP = [
+  "default-src 'self'",
+  // Google Identity Services: lo script del login e il suo iframe.
+  "script-src 'self' https://accounts.google.com/gsi/client",
+  "frame-src https://accounts.google.com/gsi/",
+  // API di Calendar e Drive (compreso l'upload), e le chiamate interne del login.
+  "connect-src 'self' https://www.googleapis.com https://accounts.google.com/gsi/",
+  // Gli stili inline servono a Radix e sonner per posizionare menu e avvisi.
+  "style-src 'self' 'unsafe-inline' https://accounts.google.com/gsi/style",
+  "img-src 'self' data:",
+  "font-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+].join('; ')
+
+function contentSecurityPolicy(): Plugin {
+  return {
+    name: 'duetrack-csp',
+    apply: 'build',
+    transformIndexHtml: () => [{ tag: 'meta', attrs: { 'http-equiv': 'Content-Security-Policy', content: CSP }, injectTo: 'head-prepend' }],
+  }
+}
 
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
+    contentSecurityPolicy(),
     // App installabile e utilizzabile offline: il service worker tiene in cache i file
     // dell'app, e a ogni pubblicazione si aggiorna da solo alla visita successiva.
     VitePWA({
