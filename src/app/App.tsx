@@ -4,6 +4,7 @@ import { ConflictDialog } from '@/components/ConflictDialog'
 import { Toaster } from '@/components/ui/sonner'
 import { ClientPage } from '@/features/client/ClientPage'
 import { OverviewPage } from '@/features/overview/OverviewPage'
+import { ReportPage } from '@/features/report/ReportPage'
 import { SettingsPage } from '@/features/settings/SettingsPage'
 import { UnclassifiedPage } from '@/features/unclassified/UnclassifiedPage'
 import { AuthProvider, useAuth } from '@/state/auth'
@@ -37,6 +38,7 @@ function Gate() {
           <Switch>
             <Route path="/clienti/:clientId" component={ClientPage} />
             <Route path="/da-classificare" component={UnclassifiedPage} />
+            <Route path="/resoconto" component={ReportPage} />
             <Route path="/impostazioni" component={SettingsPage} />
             <Route component={OverviewPage} />
           </Switch>

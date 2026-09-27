@@ -1,7 +1,7 @@
-import { RefreshCw } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'wouter'
 import { Credits } from '@/components/Credits'
+import { CalendarSyncIcon } from '@/components/icons'
 import { SyncIndicator } from '@/components/SyncIndicator'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -34,7 +34,7 @@ export function Layout({ children }: { children: ReactNode }) {
             disabled={status === 'loading'}
             title={loadedAt ? `Calendario letto alle ${formatTime(loadedAt)}: tocca per rileggerlo` : 'Rileggi il calendario'}
           >
-            <RefreshCw className={cn(status === 'loading' && 'animate-spin')} />
+            <CalendarSyncIcon className={cn(status === 'loading' && 'animate-pulse')} />
             {status === 'loading' ? 'Leggo…' : 'Aggiorna'}
           </Button>
         </div>
@@ -49,6 +49,9 @@ export function Layout({ children }: { children: ReactNode }) {
           {unclassified > 0 && (
             <span className="rounded-full bg-brand px-1.5 text-xs font-semibold text-brand-foreground tabular-nums">{unclassified}</span>
           )}
+        </Link>
+        <Link to="/resoconto" className={navLink}>
+          Resoconto
         </Link>
         <Link to="/impostazioni" className={navLink}>
           Impostazioni

@@ -1,8 +1,10 @@
-import { Download, LogOut } from 'lucide-react'
+import { LogOut } from 'lucide-react'
+import { ExportIcon } from '@/components/icons'
 import { toast } from 'sonner'
 import { Button } from '@/components/ui/button'
 import { excludeTitle } from '@/core/actions'
 import { toIsoDate } from '@/core/model'
+import { downloadFile } from '@/lib/csv'
 import { useAuth } from '@/state/auth'
 import { useData } from '@/state/data'
 import { CalendarSettings } from './CalendarSettings'
@@ -13,13 +15,7 @@ export function SettingsPage() {
 
   function exportData() {
     // Una copia da tenere dove si vuole, indipendente da Drive e da Duetrack.
-    const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
-    const url = URL.createObjectURL(blob)
-    const link = document.createElement('a')
-    link.href = url
-    link.download = `duetrack-${toIsoDate(new Date())}.json`
-    link.click()
-    URL.revokeObjectURL(url)
+    downloadFile(`duetrack-${toIsoDate(new Date())}.json`, JSON.stringify(data, null, 2), 'application/json')
   }
 
   return (
@@ -57,7 +53,7 @@ export function SettingsPage() {
         </p>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={exportData}>
-            <Download /> Scarica una copia (JSON)
+            <ExportIcon /> Scarica una copia (JSON)
           </Button>
           <Button variant="ghost" onClick={signOut}>
             <LogOut /> Esci
