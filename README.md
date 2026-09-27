@@ -26,11 +26,13 @@ Node 22.
 ```bash
 npm install
 npm run dev
+npm test          # logica pura in src/core
 npm run lint
 npm run build
 ```
 
-Stack: Vite, React, TypeScript, oxlint.
+Stack: Vite, React, TypeScript, Vitest, oxlint. Google Identity Services per il login,
+API REST di Google Calendar chiamate direttamente dal browser.
 
 ## Licenza
 
