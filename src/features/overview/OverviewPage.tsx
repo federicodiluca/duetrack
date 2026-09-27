@@ -1,7 +1,8 @@
-import { AlertTriangle, ChevronRight, Plus } from 'lucide-react'
+import { AlertTriangle, ChevronRight } from 'lucide-react'
 import { useState } from 'react'
 import { Link, useLocation } from 'wouter'
 import { ClientDialog } from '@/components/ClientDialog'
+import { ClientAddIcon } from '@/components/icons'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { formatMoney } from '@/core/money'
@@ -63,7 +64,7 @@ export function OverviewPage() {
         <div className="flex items-center justify-between gap-3">
           <h2 className="font-heading text-lg font-semibold">Clienti</h2>
           <Button variant="outline" size="sm" onClick={() => setCreating(true)}>
-            <Plus /> Nuovo cliente
+            <ClientAddIcon /> Nuovo cliente
           </Button>
         </div>
 

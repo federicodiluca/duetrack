@@ -1,6 +1,6 @@
-import { Plus } from 'lucide-react'
 import { useState } from 'react'
 import { ClientDialog } from '@/components/ClientDialog'
+import { ClientAddIcon } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { addAlias, excludeTitle } from '@/core/actions'
@@ -31,7 +31,7 @@ function GroupCard({ group, onCreate }: { group: SessionGroup<LedgerSession>; on
       </div>
       <div className="flex flex-wrap gap-2">
         <Button size="sm" onClick={onCreate}>
-          <Plus /> Nuovo cliente
+          <ClientAddIcon /> Nuovo cliente
         </Button>
         {data.clients.length > 0 && (
           <Select onValueChange={(clientId) => apply((d) => addAlias(d, clientId, group.label))}>

@@ -1,4 +1,5 @@
-import { CalendarPlus, EllipsisVertical, PenLine } from 'lucide-react'
+import { EllipsisVertical, PenLine } from 'lucide-react'
+import { CalendarAddIcon } from '@/components/icons'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -51,7 +52,7 @@ export function SessionRow({ session, currency, selected, onSelectedChange, othe
           {formatDuration(session.durationMinutes)}
           {session.source === 'manual' && (
             <Badge variant="outline">
-              <CalendarPlus /> a mano
+              <CalendarAddIcon /> a mano
             </Badge>
           )}
           {session.source === 'manual' && session.title && <span>· {session.title}</span>}

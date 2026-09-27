@@ -1,9 +1,10 @@
-import { ArrowLeft, EllipsisVertical, ListChecks, Plus, X } from 'lucide-react'
+import { ArrowLeft, EllipsisVertical, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link, useLocation, useParams } from 'wouter'
 import { toast } from 'sonner'
 import { ClientDialog } from '@/components/ClientDialog'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { CalendarAddIcon, CoinCheckIcon, CoinStackIcon } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import {
@@ -115,9 +116,12 @@ export function ClientPage() {
         <div className="flex items-start justify-between gap-3">
           <div className="grid gap-1">
             <h1 className="font-heading text-2xl font-semibold">{client.name}</h1>
-            <p className="text-sm text-muted-foreground">
-              {currentRate === undefined ? 'Nessuna tariffa attuale' : `${formatMoney(currentRate, data.currency)}/h`}
-              {client.aliases.length > 0 && ` · anche “${client.aliases.join('”, “')}”`}
+            <p className="flex flex-wrap items-center gap-x-2 text-sm text-muted-foreground">
+              <span>{currentRate === undefined ? 'Nessuna tariffa attuale' : `${formatMoney(currentRate, data.currency)}/h`}</span>
+              <Button variant="link" size="xs" className="h-auto px-0" onClick={() => setDialog({ kind: 'rates' })}>
+                Cambia tariffa
+              </Button>
+              {client.aliases.length > 0 && <span>· anche “{client.aliases.join('”, “')}”</span>}
             </p>
           </div>
           <DropdownMenu>
@@ -186,16 +190,16 @@ export function ClientPage() {
             disabled={selectedSessions.length === 0}
             onClick={() => setDialog({ kind: 'confirm-pay', sessions: selectedSessions })}
           >
-            <ListChecks />
+            <CoinCheckIcon />
             {selectedSessions.length === 0
               ? 'Segna pagate'
               : `Segna pagate ${selectedSessions.length} · ${formatMoney(sum(selectedSessions), data.currency)}`}
           </Button>
           <Button variant="outline" disabled={due.length === 0} onClick={() => setDialog({ kind: 'pay-oldest' })}>
-            Pagate N sessioni…
+            <CoinStackIcon /> Pagate N sessioni…
           </Button>
           <Button variant="ghost" onClick={() => setDialog({ kind: 'manual' })}>
-            <Plus /> Sessione a mano
+            <CalendarAddIcon /> Sessione a mano
           </Button>
         </div>
 
