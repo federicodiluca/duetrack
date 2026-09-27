@@ -17,10 +17,15 @@ resta l'unica cosa da aggiornare: niente più note parallele da tenere allineate
 - **Importo proporzionale**: 1h30 a 20 €/h fa 30 €. Ogni importo si può correggere a mano.
 - **"Pagare da"**: per chi paga dopo un periodo, imposti una data e vedi ore e totale da lì
   in poi; un tocco segna pagato tutto il blocco, e si può annullare.
+- **Tariffe con storico**: un aumento vale da una data in poi, le sessioni precedenti
+  restano alla tariffa di allora.
+- **Resoconto**: quanto hai lavorato in un periodo, per tutti i clienti o solo per alcuni,
+  diviso tra saldato e da incassare, con esportazione CSV.
 - **Da classificare**: gli eventi che non corrispondono a nessun cliente non spariscono.
   Diventano un cliente nuovo, un alias di uno esistente, o un titolo da ignorare.
 - **Nessun server**: l'app gira nel browser. I tuoi dati stanno sul tuo dispositivo e sul
   tuo Google Drive, in un file che solo Duetrack può vedere. Il calendario viene solo letto.
+  Dettagli nell'[informativa sulla privacy](https://duetrack.federicodiluca.com/privacy/).
 
 ## Sviluppo
 
@@ -45,7 +50,7 @@ src/
   core/        logica pura e testata: modello, registro, importi, azioni
   google/      login e chiamate alle API Google
   state/       stato React: dati salvati, accesso, calendario
-  features/    panoramica · cliente · da classificare · impostazioni
+  features/    panoramica · cliente · da classificare · resoconto · impostazioni
   components/  componenti condivisi (ui/ = shadcn)
 ```
 
