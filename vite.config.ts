@@ -66,6 +66,8 @@ export default defineConfig({
         // Il font ha file per ogni alfabeto; per l'italiano bastano latin e latin-ext.
         // Gli altri il browser li scarica comunque se una pagina ne avesse bisogno.
         globIgnores: ['**/*-cyrillic*', '**/*-vietnamese*'],
+        // La privacy è una pagina a sé: il service worker non deve rispondere con l'app.
+        navigateFallbackDenylist: [/^\/privacy/],
       },
     }),
   ],

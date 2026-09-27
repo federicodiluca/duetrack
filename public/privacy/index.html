@@ -1,0 +1,179 @@
+<!doctype html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="robots" content="noindex" />
+    <meta name="author" content="Federico Di Luca" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <title>Privacy · Duetrack</title>
+    <style>
+      :root {
+        color-scheme: light dark;
+        --bg: #f8f9fc;
+        --text: #1b2236;
+        --muted: #5b6480;
+        --line: #dfe3ec;
+        --accent: #1d2b4f;
+      }
+      @media (prefers-color-scheme: dark) {
+        :root {
+          --bg: #141a2b;
+          --text: #eef0f6;
+          --muted: #a7aec2;
+          --line: #2b3450;
+          --accent: #fbbf24;
+        }
+      }
+      body {
+        margin: 0;
+        padding: 2.5rem 1rem 4rem;
+        background: var(--bg);
+        color: var(--text);
+        font: 16px/1.65 system-ui, -apple-system, 'Segoe UI', sans-serif;
+      }
+      main {
+        max-width: 42rem;
+        margin: 0 auto;
+      }
+      header {
+        display: flex;
+        align-items: center;
+        gap: 0.75rem;
+        margin-bottom: 2rem;
+      }
+      header img {
+        width: 2.5rem;
+        height: 2.5rem;
+      }
+      h1 {
+        font-size: 1.75rem;
+        line-height: 1.2;
+        margin: 0;
+        text-wrap: balance;
+      }
+      h2 {
+        font-size: 1.15rem;
+        margin: 2.25rem 0 0.5rem;
+      }
+      p,
+      li {
+        color: var(--text);
+      }
+      .muted {
+        color: var(--muted);
+      }
+      a {
+        color: var(--accent);
+        text-underline-offset: 3px;
+      }
+      ul {
+        padding-left: 1.25rem;
+      }
+      li + li {
+        margin-top: 0.35rem;
+      }
+      code {
+        font-size: 0.92em;
+      }
+      footer {
+        margin-top: 3rem;
+        padding-top: 1.5rem;
+        border-top: 1px solid var(--line);
+        font-size: 0.9rem;
+        color: var(--muted);
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <header>
+        <img src="/favicon.svg" alt="" />
+        <div>
+          <h1>Informativa sulla privacy di Duetrack</h1>
+          <p class="muted" style="margin: 0.25rem 0 0">Ultimo aggiornamento: 27 settembre 2026</p>
+        </div>
+      </header>
+
+      <p>
+        Duetrack è un’applicazione web che legge le sessioni di lavoro da un calendario Google scelto dall’utente e calcola
+        quanto gli devono i suoi clienti. Questa pagina spiega quali dati usa, dove li tiene e come cancellarli.
+      </p>
+
+      <h2>In breve</h2>
+      <ul>
+        <li>Duetrack non ha un server: funziona interamente nel tuo browser.</li>
+        <li>I tuoi dati stanno sul tuo dispositivo e sul tuo Google Drive. Chi ha realizzato Duetrack non li vede e non li riceve.</li>
+        <li>Nessuna pubblicità, nessuna analisi statistica, nessun cookie di tracciamento.</li>
+      </ul>
+
+      <h2>Dati di Google a cui Duetrack accede</h2>
+      <p>Al momento dell’accesso Duetrack chiede a Google tre permessi, i più ristretti disponibili:</p>
+      <ul>
+        <li>
+          <strong>Elenco dei tuoi calendari</strong>, in sola lettura, per farti scegliere quello in cui segni le sessioni.
+        </li>
+        <li>
+          <strong>Eventi dei calendari di tua proprietà</strong>, in sola lettura: titolo, inizio e fine degli eventi del
+          calendario scelto, per riconoscere il cliente e calcolare durata e importo. Duetrack non modifica mai il calendario.
+        </li>
+        <li>
+          <strong>File creati da Duetrack sul tuo Google Drive</strong>: un solo file, <code>duetrack-data.json</code>, con
+          clienti, tariffe e pagamenti, per tenere allineati i tuoi dispositivi. Duetrack non può vedere gli altri file del
+          tuo Drive.
+        </li>
+      </ul>
+
+      <h2>Dove sono i dati</h2>
+      <ul>
+        <li>
+          <strong>Nel tuo browser</strong> (IndexedDB): i dati dell’app, per aprirla subito e usarla anche offline.
+        </li>
+        <li><strong>Nel tuo Google Drive</strong>: il file <code>duetrack-data.json</code>, di tua proprietà.</li>
+        <li>
+          <strong>Il permesso di accesso a Google</strong> resta solo in memoria mentre l’app è aperta e scade dopo circa
+          un’ora. Non viene salvato da nessuna parte.
+        </li>
+      </ul>
+      <p>
+        Le richieste vanno direttamente dal tuo browser a Google. L’app è pubblicata su GitHub Pages, che come ogni servizio
+        di hosting può registrare dati tecnici delle visite (per esempio l’indirizzo IP) secondo la propria informativa.
+      </p>
+
+      <h2>Uso dei dati ricevuti dalle API di Google</h2>
+      <p>
+        L’uso e il trasferimento ad altre app delle informazioni ricevute dalle API di Google da parte di Duetrack rispettano
+        le
+        <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener"
+          >Norme sui dati utente dei servizi API di Google</a
+        >, inclusi i requisiti di uso limitato. I dati servono solo a mostrarti le tue sessioni e i tuoi conti: non vengono
+        venduti, non vengono usati per pubblicità e non vengono trasferiti a terzi.
+      </p>
+      <p class="muted" lang="en">
+        Duetrack’s use and transfer to any other app of information received from Google APIs will adhere to the Google API
+        Services User Data Policy, including the Limited Use requirements.
+      </p>
+
+      <h2>Come cancellare i dati</h2>
+      <ul>
+        <li>Elimina il file <code>duetrack-data.json</code> dal tuo Google Drive.</li>
+        <li>Cancella i dati del sito <code>duetrack.federicodiluca.com</code> dalle impostazioni del browser.</li>
+        <li>
+          Revoca l’accesso di Duetrack al tuo account dalla pagina
+          <a href="https://myaccount.google.com/permissions" target="_blank" rel="noopener">App di terze parti con accesso all’account</a>.
+        </li>
+      </ul>
+
+      <h2>Contatti</h2>
+      <p>
+        Duetrack è un progetto di <a href="https://federicodiluca.com/">Federico Di Luca</a>. Per domande su questa
+        informativa scrivi a <a href="mailto:duetrack@federicodiluca.com">duetrack@federicodiluca.com</a>. Il codice è
+        pubblico su <a href="https://github.com/federicodiluca/duetrack">GitHub</a>.
+      </p>
+
+      <footer>
+        <a href="/">Torna a Duetrack</a> · Scopri gli <a href="https://federicodiluca.com/progetti/">altri progetti</a>
+      </footer>
+    </main>
+  </body>
+</html>

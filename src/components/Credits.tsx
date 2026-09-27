@@ -16,7 +16,10 @@ export function Credits() {
       <a className={link} href="mailto:duetrack@federicodiluca.com">
         duetrack@federicodiluca.com
       </a>
-      .
+      .{' '}
+      <a className={link} href="/privacy/">
+        Privacy
+      </a>
     </p>
   )
 }
