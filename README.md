@@ -34,6 +34,15 @@ npm run build
 Stack: Vite, React, TypeScript, Vitest, oxlint. Google Identity Services per il login,
 API REST di Google Calendar chiamate direttamente dal browser.
 
+## Autore
+
+Duetrack è ideato e sviluppato da **[Federico Di Luca](https://federicodiluca.com/chi-sono/)**,
+sviluppatore software e docente. Altri progetti su
+**[federicodiluca.com/progetti](https://federicodiluca.com/progetti/)**.
+
+Domande, segnalazioni o proposte: [duetrack@federicodiluca.com](mailto:duetrack@federicodiluca.com),
+oppure apri una [issue](https://github.com/federicodiluca/duetrack/issues).
+
 ## Licenza
 
-[MIT](LICENSE)
+[MIT](LICENSE) © Federico Di Luca

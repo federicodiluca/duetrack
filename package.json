@@ -2,6 +2,18 @@
   "name": "duetrack",
   "private": true,
   "version": "0.1.0",
+  "description": "Chi ti deve cosa, letto dal tuo Google Calendar: tracker dei pagamenti per lavori a ore.",
+  "license": "MIT",
+  "author": "Federico Di Luca <duetrack@federicodiluca.com> (https://federicodiluca.com)",
+  "homepage": "https://duetrack.federicodiluca.com",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/federicodiluca/duetrack.git"
+  },
+  "bugs": {
+    "url": "https://github.com/federicodiluca/duetrack/issues",
+    "email": "duetrack@federicodiluca.com"
+  },
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -25,7 +37,5 @@
     "typescript": "~6.0.2",
     "vite": "^8.3.0",
     "vitest": "^5.0.2"
-  },
-  "license": "MIT",
-  "description": "Chi ti deve cosa, letto dal tuo Google Calendar: tracker dei pagamenti per lavori a ore."
+  }
 }
