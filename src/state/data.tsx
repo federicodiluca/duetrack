@@ -55,8 +55,9 @@ export function DataProvider({ children }: { children: ReactNode }) {
   const [loadError, setLoadError] = useState<string>()
 
   useEffect(() => {
-    Promise.all([loadData(), loadSyncMeta()])
-      .then(([data, meta]) =>
+    loadData()
+      .then(async (data) => ({ data, meta: await loadSyncMeta(data) }))
+      .then(({ data, meta }) =>
         setEngine(
           new SyncEngine({
             data,

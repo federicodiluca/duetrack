@@ -184,6 +184,20 @@ describe('SyncEngine', () => {
     expect(keepDevice.state().sync.state).toBe('synced')
   })
 
+  it('does not silently replace data created before sync existed', async () => {
+    const drive = new FakeDrive()
+    const phone = device(drive)
+    phone.engine.apply((d) => addClient(d, client('marta')))
+    await phone.engine.sync(TOKEN)
+
+    // Il PC ha dati di prima della sincronizzazione: storage.loadSyncMeta li segna dirty.
+    const pc = device(drive, addClient(emptyData(), client('luca')), { dirty: true })
+    await pc.engine.sync(TOKEN)
+    expect(pc.state().sync.state).toBe('conflict')
+    expect(ids(pc.state().data)).toEqual(['luca'])
+    expect(ids(drive.content)).toEqual(['marta'])
+  })
+
   it('recreates the file if it was deleted from Drive', async () => {
     const drive = new FakeDrive()
     const pc = device(drive)

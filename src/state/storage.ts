@@ -4,6 +4,7 @@
 
 import { get, set } from 'idb-keyval'
 import { type DuetrackData, emptyData, normalizeData } from '@/core/model'
+import { isEmptyData } from '@/core/sync'
 import { DEMO } from '@/demo'
 
 // La demo salva altrove, per non mescolare dati inventati con quelli veri.
@@ -28,8 +29,14 @@ export async function saveData(data: DuetrackData): Promise<void> {
   await set(DATA_KEY, data)
 }
 
-export async function loadSyncMeta(): Promise<SyncMeta> {
-  return (await get<SyncMeta>(SYNC_KEY)) ?? { dirty: false }
+/**
+ * Lo stato di sincronizzazione salvato. Se manca (dati creati prima che la
+ * sincronizzazione esistesse) non si può sapere se sono già su Drive: se non sono vuoti
+ * si trattano come modifiche non salvate, così un file già presente su Drive non li
+ * sostituisce in silenzio ma fa scegliere all'utente.
+ */
+export async function loadSyncMeta(data: DuetrackData): Promise<SyncMeta> {
+  return (await get<SyncMeta>(SYNC_KEY)) ?? { dirty: !isEmptyData(data) }
 }
 
 export async function saveSyncMeta(meta: SyncMeta): Promise<void> {
