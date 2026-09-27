@@ -8,13 +8,14 @@ import { Label } from '@/components/ui/label'
 import { buildLedger } from '@/core/ledger'
 import { type IsoDate, toIsoDate } from '@/core/model'
 import { formatMoney } from '@/core/money'
-import { buildReport, isSettled, type ReportTotals } from '@/core/report'
+import { buildReport, effectiveRate, isSettled, monthlyTotals, percentChange, comparablePeriods, type ReportTotals } from '@/core/report'
 import { formatDuration } from '@/core/session'
 import { decimal, downloadFile, toCsv } from '@/lib/csv'
 import { formatDay, formatIsoDate, formatTime, pluralize } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import { useData } from '@/state/data'
 import { useCalendarRange } from '@/state/useCalendarRange'
+import { MonthlyChart } from './MonthlyChart'
 
 interface Period {
   label: string
@@ -34,13 +35,35 @@ function presets(today = new Date()): Period[] {
   ]
 }
 
-function Figure({ label, value, detail, className }: { label: string; value: string; detail?: string; className?: string }) {
+function Figure({
+  label,
+  value,
+  detail,
+  className,
+}: {
+  label: string
+  value: string
+  detail?: React.ReactNode
+  className?: string
+}) {
   return (
     <div className="grid content-start gap-0.5 rounded-lg border bg-card p-4">
       <span className="text-sm font-medium text-muted-foreground">{label}</span>
       <span className={cn('font-heading text-2xl font-semibold tabular-nums', className)}>{value}</span>
       {detail && <span className="text-sm text-muted-foreground">{detail}</span>}
     </div>
+  )
+}
+
+/** "+12%" o "−8%", con il segno meno tipografico; niente se non c'è un confronto possibile. */
+function Change({ value, label }: { value?: number; label: string }) {
+  if (value === undefined) return null
+  const sign = value > 0 ? '+' : value < 0 ? '−' : '±'
+  return (
+    <span className={cn('tabular-nums', value > 0 && 'text-paid')}>
+      {sign}
+      {Math.abs(value)}% {label}
+    </span>
   )
 }
 
@@ -57,10 +80,23 @@ export function ReportPage() {
   const [hidden, setHidden] = useState<Set<string>>(new Set())
 
   const validRange = from !== '' && to !== '' && from <= to
-  const range = useCalendarRange(validRange ? from : undefined, validRange ? to : undefined)
+  // Si legge anche il periodo precedente, per il confronto: una sola richiesta al calendario.
+  // Un periodo non ancora finito si confronta con lo stesso tratto del periodo prima.
+  const previous = useMemo(
+    () => (validRange ? comparablePeriods(from, to, toIsoDate(new Date())).previous : undefined),
+    [validRange, from, to],
+  )
+  const range = useCalendarRange(previous?.from, validRange ? to : undefined)
   const ledger = useMemo(() => buildLedger(range.sessions, data, range.window), [range.sessions, range.window, data])
   const selected = useMemo(() => new Set(data.clients.filter((c) => !hidden.has(c.id)).map((c) => c.id)), [data.clients, hidden])
   const report = useMemo(() => buildReport(ledger, data, from, to, selected), [ledger, data, from, to, selected])
+  const before = useMemo(
+    () => previous && buildReport(ledger, data, previous.from, previous.to, selected),
+    [ledger, data, previous, selected],
+  )
+  const months = useMemo(() => (validRange ? monthlyTotals(report, from, to) : []), [validRange, report, from, to])
+  const rate = effectiveRate(report.total)
+  const rateBefore = before && effectiveRate(before.total)
   const clients = new Map(data.clients.map((c) => [c.id, c]))
   const money = (cents: number) => formatMoney(cents, data.currency)
 
@@ -86,7 +122,25 @@ export function ReportPage() {
         isSettled(s, client) ? 'Saldata' : 'Da incassare',
       ])
     }
-    downloadFile(`duetrack-${from}-${to}.csv`, toCsv(rows), 'text/csv;charset=utf-8')
+    downloadFile(`duetrack-sessioni-${from}-${to}.csv`, toCsv(rows), 'text/csv;charset=utf-8')
+  }
+
+  /** I pagamenti ricevuti nel periodo, per la contabilità o la dichiarazione dei redditi. */
+  function exportPayments() {
+    const rows: (string | number)[][] = [['Data', 'Cliente', 'Sessioni', 'Ore', 'Importo (€)']]
+    const payments = data.payments
+      .filter((p) => selected.has(p.clientId) && p.date >= from && p.date <= to)
+      .sort((a, b) => a.date.localeCompare(b.date))
+    for (const p of payments) {
+      rows.push([
+        formatIsoDate(p.date),
+        clients.get(p.clientId)?.name ?? '',
+        p.items.length,
+        decimal(p.items.reduce((t, i) => t + i.durationMinutes, 0) / 60),
+        decimal(p.items.reduce((t, i) => t + i.amountCents, 0) / 100),
+      ])
+    }
+    downloadFile(`duetrack-pagamenti-${from}-${to}.csv`, toCsv(rows), 'text/csv;charset=utf-8')
   }
 
   return (
@@ -154,11 +208,42 @@ export function ReportPage() {
       )}
 
       <section className={cn('grid gap-4 transition-opacity', range.status === 'loading' && 'opacity-60')} aria-busy={range.status === 'loading'}>
-        <div className="grid gap-3 sm:grid-cols-3">
-          <Figure label="Svolto" value={money(report.total.cents)} detail={hours(report.total)} />
+        <div className="grid gap-3 sm:grid-cols-2">
+          <Figure
+            label="Svolto"
+            value={money(report.total.cents)}
+            detail={
+              <>
+                {hours(report.total)}
+                {before && (
+                  <span className="block">
+                    <Change value={percentChange(report.total.cents, before.total.cents)} label="rispetto al periodo prima" />
+                  </span>
+                )}
+              </>
+            }
+          />
+          <Figure
+            label="Tariffa media effettiva"
+            value={rate === undefined ? '—' : `${money(rate)}/h`}
+            detail={
+              rate !== undefined && rateBefore !== undefined ? (
+                <Change value={percentChange(rate, rateBefore)} label="rispetto al periodo prima" />
+              ) : (
+                'Importo diviso ore: tiene conto di sconti e correzioni'
+              )
+            }
+          />
           <Figure label="Di cui saldato" value={money(report.total.settledCents)} className="text-paid" />
           <Figure label="Di cui da incassare" value={money(report.total.outstandingCents)} />
         </div>
+        {before && previous && (
+          <p className="text-sm text-muted-foreground">
+            Periodo prima: dal {formatIsoDate(previous.from)} al {formatIsoDate(previous.to)},{' '}
+            <span className="font-medium text-foreground">{money(before.total.cents)}</span> in {formatDuration(before.total.minutes)}.
+          </p>
+        )}
+        {months.length >= 2 && <MonthlyChart months={months} currency={data.currency} />}
         <p className="text-sm text-muted-foreground">
           Incassato in questo periodo: <span className="font-medium text-foreground">{money(report.receivedCents)}</span>. Può
           essere diverso dal saldato: un pagamento di ottobre può saldare lezioni di settembre.
@@ -187,6 +272,7 @@ export function ReportPage() {
                   <th className="p-3 text-right font-medium">Sessioni</th>
                   <th className="p-3 text-right font-medium">Ore</th>
                   <th className="p-3 text-right font-medium">Svolto</th>
+                  <th className="hidden p-3 text-right font-medium sm:table-cell">€/h medi</th>
                   <th className="p-3 text-right font-medium">Da incassare</th>
                 </tr>
               </thead>
@@ -201,6 +287,9 @@ export function ReportPage() {
                     <td className="p-3 text-right">{row.sessions}</td>
                     <td className="p-3 text-right">{formatDuration(row.minutes)}</td>
                     <td className="p-3 text-right font-medium">{money(row.cents)}</td>
+                    <td className="hidden p-3 text-right sm:table-cell">
+                      {effectiveRate(row) === undefined ? '—' : money(effectiveRate(row)!)}
+                    </td>
                     <td className="p-3 text-right">{row.outstandingCents > 0 ? money(row.outstandingCents) : '—'}</td>
                   </tr>
                 ))}
@@ -216,7 +305,10 @@ export function ReportPage() {
         {report.sessions.length > 0 && (
           <div className="flex flex-wrap items-center gap-3">
             <Button variant="outline" onClick={exportCsv}>
-              <ExportIcon /> Esporta le sessioni (CSV)
+              <ExportIcon /> Sessioni (CSV)
+            </Button>
+            <Button variant="outline" onClick={exportPayments}>
+              <ExportIcon /> Pagamenti ricevuti (CSV)
             </Button>
             <span className="text-sm text-muted-foreground">
               {formatDay(report.sessions[0].start)} – {formatDay(report.sessions[report.sessions.length - 1].start)}
