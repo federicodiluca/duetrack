@@ -5,7 +5,7 @@
 import { type Client, type DuetrackData, type IsoDate, type SessionId, toIsoDate } from './model'
 import { amountForDuration } from './money'
 import type { Session } from './session'
-import { titleKey } from './title'
+import { titleKey, withoutWords } from './title'
 
 export type Match =
   | { kind: 'client'; clientId: string }
@@ -31,7 +31,10 @@ export function rateAt(client: Client, date: IsoDate): number | undefined {
 export interface LedgerSession {
   id: SessionId
   source: 'calendar' | 'manual'
+  /** Il titolo senza emoji né parole ignorate. */
   title: string
+  /** Chiave normalizzata del titolo, per il confronto con clienti e titoli esclusi. */
+  key: string
   start: Date
   date: IsoDate
   durationMinutes: number
@@ -54,6 +57,8 @@ export interface Ledger {
   sessions: LedgerSession[]
   /** Sessioni da calendario senza cliente: titolo sconosciuto o ambiguo. */
   unclassified: LedgerSession[]
+  /** Sessioni escluse, a mano o per titolo: si possono sempre ripristinare. */
+  excluded: LedgerSession[]
   anomalies: Anomaly[]
 }
 
@@ -75,22 +80,32 @@ export function buildLedger(
 
   const sessions: LedgerSession[] = []
 
+  const { ignoredWords, excludedTitles } = data.settings
   for (const s of calendarSessions) {
     const id: SessionId = `cal:${s.eventId}`
+    const title = withoutWords(s.title, ignoredWords)
+    const key = titleKey(title)
     const override = data.overrides[id]
-    const match = override?.clientId ? undefined : matchClient(s.key, data.clients)
+    const match = override?.clientId ? undefined : matchClient(key, data.clients)
     const clientId = override?.clientId ?? (match?.kind === 'client' ? match.clientId : undefined)
-    sessions.push(finish({ id, source: 'calendar', title: s.title, start: s.start, durationMinutes: s.durationMinutes, clientId, match }))
+    const excludedByTitle = excludedTitles.includes(key)
+    sessions.push(
+      finish({ id, source: 'calendar', title, key, start: s.start, durationMinutes: s.durationMinutes, clientId, match }, excludedByTitle),
+    )
   }
 
   for (const m of data.manualSessions) {
     const id: SessionId = `man:${m.id}`
     const clientId = data.overrides[id]?.clientId ?? m.clientId
     const start = new Date(m.start)
-    sessions.push(finish({ id, source: 'manual', title: m.note ?? '', start, durationMinutes: m.durationMinutes, clientId }))
+    const title = m.note ?? ''
+    sessions.push(finish({ id, source: 'manual', title, key: titleKey(title), start, durationMinutes: m.durationMinutes, clientId }, false))
   }
 
-  function finish(s: Omit<LedgerSession, 'date' | 'excluded' | 'computedCents' | 'amountCents' | 'paymentId'>): LedgerSession {
+  function finish(
+    s: Omit<LedgerSession, 'date' | 'excluded' | 'computedCents' | 'amountCents' | 'paymentId'>,
+    excludedByDefault: boolean,
+  ): LedgerSession {
     const override = data.overrides[s.id]
     const date = toIsoDate(s.start)
     const client = s.clientId ? clients.get(s.clientId) : undefined
@@ -99,7 +114,8 @@ export function buildLedger(
     return {
       ...s,
       date,
-      excluded: override?.excluded ?? false,
+      // Un'esclusione o reinclusione esplicita vince sul titolo escluso.
+      excluded: override?.excluded ?? excludedByDefault,
       computedCents,
       amountCents: override?.amountCents ?? computedCents,
       paymentId: paymentOf.get(s.id),
@@ -136,6 +152,7 @@ export function buildLedger(
   return {
     sessions,
     unclassified: sessions.filter((s) => s.source === 'calendar' && !s.excluded && !s.clientId),
+    excluded: sessions.filter((s) => s.excluded),
     anomalies,
   }
 }

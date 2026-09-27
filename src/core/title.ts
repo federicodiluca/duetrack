@@ -26,3 +26,17 @@ export function titleKey(title: string): string {
       .trim()
   )
 }
+
+/**
+ * Il titolo senza le parole indicate (confrontate come chiavi, quindi senza badare a
+ * maiuscole e accenti): con ["ripetizioni"], "📚 Ripetizioni Giacomo" diventa "Giacomo".
+ */
+export function withoutWords(title: string, words: string[]): string {
+  const ignored = new Set(words.map(titleKey).filter(Boolean))
+  const clean = displayTitle(title)
+  if (ignored.size === 0) return clean
+  return clean
+    .split(' ')
+    .filter((word) => !ignored.has(titleKey(word)))
+    .join(' ')
+}

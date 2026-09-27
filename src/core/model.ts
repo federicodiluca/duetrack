@@ -68,9 +68,21 @@ export interface Payment {
   note?: string
 }
 
+export interface Settings {
+  /** Il calendario da cui leggere le sessioni. */
+  calendarId?: string
+  /** Da quando tracciare: gli eventi precedenti non vengono letti, si considerano già sistemati. */
+  trackFrom?: IsoDate
+  /** Parole da togliere dai titoli prima del confronto, es. "ripetizioni". */
+  ignoredWords: string[]
+  /** Titoli (chiavi normalizzate) che non sono mai sessioni, es. "riunione". */
+  excludedTitles: string[]
+}
+
 export interface DuetrackData {
   schemaVersion: typeof SCHEMA_VERSION
   currency: string
+  settings: Settings
   clients: Client[]
   manualSessions: ManualSession[]
   overrides: Partial<Record<SessionId, SessionOverride>>
@@ -78,7 +90,15 @@ export interface DuetrackData {
 }
 
 export function emptyData(): DuetrackData {
-  return { schemaVersion: SCHEMA_VERSION, currency: 'EUR', clients: [], manualSessions: [], overrides: {}, payments: [] }
+  return {
+    schemaVersion: SCHEMA_VERSION,
+    currency: 'EUR',
+    settings: { ignoredWords: [], excludedTitles: [] },
+    clients: [],
+    manualSessions: [],
+    overrides: {},
+    payments: [],
+  }
 }
 
 /** La data locale di un istante, come IsoDate. */

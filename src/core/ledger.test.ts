@@ -2,7 +2,6 @@ import { describe, expect, it } from 'vitest'
 import { recordPayment } from './actions'
 import { buildLedger, matchClient, oldestDue, rateAt, summarizeClient } from './ledger'
 import { type Client, type DuetrackData, emptyData } from './model'
-import { amountForDuration } from './money'
 import { type Session, eventToSession } from './session'
 
 // Orari a mezzogiorno UTC: la data locale è la stessa in qualunque fuso europeo o
@@ -22,15 +21,6 @@ function dataWith(...clients: Client[]): DuetrackData {
 }
 
 const window = { from: new Date('2026-01-01T00:00:00Z'), to: new Date('2027-01-01T00:00:00Z') }
-
-describe('amountForDuration', () => {
-  it('is proportional to the duration, rounded to the cent', () => {
-    expect(amountForDuration(60, 2000)).toBe(2000)
-    expect(amountForDuration(90, 2000)).toBe(3000)
-    expect(amountForDuration(45, 2500)).toBe(1875)
-    expect(amountForDuration(50, 2500)).toBe(2083) // 2083.33…
-  })
-})
 
 describe('matchClient', () => {
   const clients = [filippo, filippoO]

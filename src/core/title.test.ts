@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { displayTitle, titleKey } from './title'
+import { displayTitle, titleKey, withoutWords } from './title'
 
 describe('displayTitle', () => {
   it('removes emoji and extra spaces, keeps case and accents', () => {
@@ -23,5 +23,16 @@ describe('titleKey', () => {
 
   it('returns an empty key for emoji-only titles', () => {
     expect(titleKey('📚')).toBe('')
+  })
+})
+
+describe('withoutWords', () => {
+  it('drops ignored words regardless of case and accents', () => {
+    expect(withoutWords('📚 Ripetizioni Giacomo', ['ripetizioni'])).toBe('Giacomo')
+    expect(withoutWords('RIPETIZIONI giovanni G.', ['Ripetizioni'])).toBe('giovanni G.')
+  })
+
+  it('leaves the title alone without ignored words', () => {
+    expect(withoutWords('📚 Giacomo', [])).toBe('Giacomo')
   })
 })

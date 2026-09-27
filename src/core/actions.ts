@@ -4,7 +4,8 @@
 // Gli id si passano da fuori, così le funzioni restano deterministiche e testabili.
 
 import type { LedgerSession } from './ledger'
-import type { Client, DuetrackData, IsoDate, ManualSession, Payment, SessionId, SessionOverride } from './model'
+import type { Client, DuetrackData, IsoDate, ManualSession, Payment, Rate, SessionId, SessionOverride, Settings } from './model'
+import { titleKey } from './title'
 
 export class ActionError extends Error {}
 
@@ -81,7 +82,7 @@ export function assignSession(data: DuetrackData, sessionId: SessionId, clientId
 
 export function setAmount(data: DuetrackData, sessionId: SessionId, amountCents: number | undefined): DuetrackData {
   if (amountCents !== undefined && (!Number.isInteger(amountCents) || amountCents < 0)) {
-    throw new ActionError('L\'importo deve essere un numero intero di centesimi, non negativo')
+    throw new ActionError('L’importo deve essere un numero intero di centesimi, non negativo')
   }
   return setOverride(data, sessionId, { amountCents })
 }
@@ -103,4 +104,55 @@ export function removeManualSession(data: DuetrackData, id: string): DuetrackDat
     amountCents: undefined,
     note: undefined,
   })
+}
+
+export function updateSettings(data: DuetrackData, patch: Partial<Settings>): DuetrackData {
+  return { ...data, settings: { ...data.settings, ...patch } }
+}
+
+/** Aggiunge un alias: da quel momento i titoli con quel nome vanno a quel cliente. */
+export function addAlias(data: DuetrackData, clientId: string, alias: string): DuetrackData {
+  assertClient(data, clientId)
+  const key = titleKey(alias)
+  if (!key) throw new ActionError('L’alias è vuoto')
+  const owner = data.clients.find((c) => [c.name, ...c.aliases].some((n) => titleKey(n) === key))
+  if (owner?.id === clientId) return data
+  if (owner) throw new ActionError(`"${alias}" è già il nome o un alias di ${owner.name}`)
+  const client = data.clients.find((c) => c.id === clientId)!
+  return updateClient(data, clientId, { aliases: [...client.aliases, alias.trim()] })
+}
+
+/** Segna un titolo come "mai una sessione", o lo toglie da quella lista. */
+export function excludeTitle(data: DuetrackData, key: string, excluded = true): DuetrackData {
+  const others = data.settings.excludedTitles.filter((k) => k !== key)
+  return updateSettings(data, { excludedTitles: excluded ? [...others, key] : others })
+}
+
+/** Aggiunge una tariffa valida da una data; se ce n'è già una con la stessa data la sostituisce. */
+export function setRate(data: DuetrackData, clientId: string, rate: Rate): DuetrackData {
+  assertClient(data, clientId)
+  if (!Number.isInteger(rate.centsPerHour) || rate.centsPerHour < 0) throw new ActionError('Tariffa non valida')
+  const client = data.clients.find((c) => c.id === clientId)!
+  const rates = [...client.rates.filter((r) => r.from !== rate.from), rate].sort((a, b) => a.from.localeCompare(b.from))
+  return updateClient(data, clientId, { rates })
+}
+
+export function removeRate(data: DuetrackData, clientId: string, from: IsoDate): DuetrackData {
+  assertClient(data, clientId)
+  const client = data.clients.find((c) => c.id === clientId)!
+  return updateClient(data, clientId, { rates: client.rates.filter((r) => r.from !== from) })
+}
+
+/** Elimina un cliente senza storico. Con pagamenti o sessioni manuali si rifiuta: si perderebbero dati. */
+export function deleteClient(data: DuetrackData, clientId: string): DuetrackData {
+  assertClient(data, clientId)
+  if (data.payments.some((p) => p.clientId === clientId)) throw new ActionError('Il cliente ha dei pagamenti registrati')
+  if (data.manualSessions.some((m) => m.clientId === clientId)) {
+    throw new ActionError('Il cliente ha delle sessioni inserite a mano')
+  }
+  let next: DuetrackData = { ...data, clients: data.clients.filter((c) => c.id !== clientId) }
+  for (const [sessionId, override] of Object.entries(data.overrides) as [SessionId, SessionOverride][]) {
+    if (override.clientId === clientId) next = setOverride(next, sessionId, { clientId: undefined })
+  }
+  return next
 }

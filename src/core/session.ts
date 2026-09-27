@@ -35,16 +35,18 @@ export function eventToSession(event: CalendarEvent): Session | null {
   return { eventId: event.id, title: displayTitle(title), key: titleKey(title), start, durationMinutes }
 }
 
-export interface SessionGroup {
+export interface SessionGroup<T extends GroupableSession = Session> {
   key: string
   label: string
-  sessions: Session[]
+  sessions: T[]
   totalMinutes: number
 }
 
+type GroupableSession = Pick<Session, 'key' | 'title' | 'durationMinutes'>
+
 /** Raggruppa le sessioni per titolo normalizzato, i gruppi più numerosi per primi. */
-export function groupByTitle(sessions: Session[]): SessionGroup[] {
-  const groups = new Map<string, SessionGroup>()
+export function groupByTitle<T extends GroupableSession>(sessions: T[]): SessionGroup<T>[] {
+  const groups = new Map<string, SessionGroup<T>>()
   for (const session of sessions) {
     const group = groups.get(session.key) ?? { key: session.key, label: session.title, sessions: [], totalMinutes: 0 }
     group.sessions.push(session)

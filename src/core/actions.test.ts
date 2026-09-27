@@ -1,14 +1,21 @@
 import { describe, expect, it } from 'vitest'
 import {
   ActionError,
+  addAlias,
   addClient,
   addManualSession,
   assignSession,
+  deleteClient,
   excludeSession,
+  excludeTitle,
   recordPayment,
   removeManualSession,
+  removeRate,
   setAmount,
+  setOverride,
+  setRate,
   undoPayment,
+  updateSettings,
 } from './actions'
 import { buildLedger, summarizeClient } from './ledger'
 import { type Client, type DuetrackData, emptyData } from './model'
@@ -101,5 +108,64 @@ describe('manual sessions', () => {
 
     data = removeManualSession(undoPayment(data, 'p1'), 'm1')
     expect(due(data)).toHaveLength(3)
+  })
+})
+
+describe('clients', () => {
+  it('adds an alias and refuses one that belongs to someone else', () => {
+    let data = addAlias(setup(), 'cecilia', 'Cate')
+    expect(data.clients.find((c) => c.id === 'cecilia')?.aliases).toEqual(['Cate'])
+    expect(addAlias(data, 'cecilia', 'cate')).toBe(data)
+    expect(() => addAlias(data, 'davide', 'Cate')).toThrow(ActionError)
+    data = addAlias(data, 'davide', 'Dav')
+    expect(data.clients.find((c) => c.id === 'davide')?.aliases).toEqual(['Dav'])
+  })
+
+  it('keeps rates sorted and replaces a rate with the same start date', () => {
+    let data = setRate(setup(), 'davide', { from: '2026-09-01', centsPerHour: 2500 })
+    data = setRate(data, 'davide', { from: '2026-09-01', centsPerHour: 2200 })
+    expect(data.clients.find((c) => c.id === 'davide')?.rates).toEqual([
+      { from: '2026-01-01', centsPerHour: 2000 },
+      { from: '2026-09-01', centsPerHour: 2200 },
+    ])
+    data = removeRate(data, 'davide', '2026-01-01')
+    expect(data.clients.find((c) => c.id === 'davide')?.rates).toHaveLength(1)
+  })
+
+  it('deletes a client without history and releases its assignments', () => {
+    let data = assignSession(setup(), 'cal:e1', 'cecilia')
+    data = deleteClient(data, 'cecilia')
+    expect(data.clients.map((c) => c.id)).toEqual(['davide'])
+    expect(data.overrides).toEqual({})
+  })
+
+  it('refuses to delete a client with payments', () => {
+    const data = recordPayment(setup(), { id: 'p1', clientId: 'davide', date: '2026-09-10' }, due(setup()).slice(0, 1))
+    expect(() => deleteClient(data, 'davide')).toThrow(ActionError)
+  })
+})
+
+describe('settings', () => {
+  const titled = events.map((e) => ({ ...e, title: `Ripetizioni ${e.title}`, key: `ripetizioni ${e.key}` }))
+
+  it('ignores words in titles when matching clients', () => {
+    expect(due(setup())).toHaveLength(3)
+    expect(summarizeClient(buildLedger(titled, setup(), window), davide).due).toHaveLength(0)
+    const data = updateSettings(setup(), { ignoredWords: ['ripetizioni'] })
+    expect(summarizeClient(buildLedger(titled, data, window), davide).due).toHaveLength(3)
+  })
+
+  it('excludes whole titles, with explicit per-session exceptions', () => {
+    let data = excludeTitle(updateSettings(setup(), { ignoredWords: ['ripetizioni'] }), 'davide')
+    let ledger = buildLedger(titled, data, window)
+    expect(ledger.excluded).toHaveLength(3)
+    expect(summarizeClient(ledger, davide).due).toHaveLength(0)
+
+    data = setOverride(data, 'cal:e1', { excluded: false })
+    ledger = buildLedger(titled, data, window)
+    expect(summarizeClient(ledger, davide).due.map((s) => s.id)).toEqual(['cal:e1'])
+
+    data = excludeTitle(data, 'davide', false)
+    expect(data.settings.excludedTitles).toEqual([])
   })
 })
