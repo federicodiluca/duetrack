@@ -31,6 +31,12 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
   const { token, signOut } = useAuth()
   const { data } = useData()
   const { calendarId, trackFrom } = data.settings
+  // Si legge dalla data più vecchia che serve: un "pagare da" precedente alla data di
+  // partenza fa rileggere anche quel periodo. Le date sono IsoDate: si confrontano come testo.
+  const readFrom = data.clients.reduce<string | undefined>(
+    (earliest, c) => (c.payFrom && earliest && c.payFrom < earliest ? c.payFrom : earliest),
+    trackFrom,
+  )
 
   const [reloads, setReloads] = useState(0)
   const [result, setResult] = useState<Result>()
@@ -39,14 +45,14 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
 
   // "Sto caricando" non è uno stato da impostare a mano: è vero finché l'ultimo esito
   // arrivato non risponde alla richiesta attuale. Così nessun setState dentro l'effect.
-  const request = `${calendarId}|${trackFrom}|${reloads}`
+  const request = `${calendarId}|${readFrom}|${reloads}`
   const status: CalendarContextValue['status'] = result?.request !== request ? 'loading' : 'error' in result ? 'error' : 'ready'
 
   useEffect(() => {
-    if (!token || !calendarId || !trackFrom) return
+    if (!token || !calendarId || !readFrom) return
     let cancelled = false
     // Fino a adesso: una lezione in calendario per la settimana prossima non è ancora dovuta.
-    const window = { from: isoToDate(trackFrom), to: new Date() }
+    const window = { from: isoToDate(readFrom), to: new Date() }
     const events = DEMO ? demoListEvents(window.from, window.to) : listEvents(token, calendarId, window.from, window.to)
     events
       .then((events) => {
@@ -72,7 +78,7 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
     return () => {
       cancelled = true
     }
-  }, [token, calendarId, trackFrom, request, signOut])
+  }, [token, calendarId, readFrom, request, signOut])
 
   const reload = useCallback(() => setReloads((n) => n + 1), [])
 

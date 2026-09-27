@@ -42,6 +42,11 @@ export interface LedgerSession {
   /** Solo per le sessioni da calendario non assegnate a mano. */
   match?: Match
   excluded: boolean
+  /**
+   * Evento precedente alla data "traccia dal": si considera già sistemato, salvo per i
+   * clienti con un "pagare da" ancora più vecchio.
+   */
+  beforeTracking: boolean
   /** Durata × tariffa; undefined se il cliente non ha una tariffa per quella data. */
   computedCents?: number
   /** Importo effettivo: la correzione manuale se c'è, altrimenti quello calcolato. */
@@ -103,11 +108,12 @@ export function buildLedger(
   }
 
   function finish(
-    s: Omit<LedgerSession, 'date' | 'excluded' | 'computedCents' | 'amountCents' | 'paymentId'>,
+    s: Omit<LedgerSession, 'date' | 'excluded' | 'beforeTracking' | 'computedCents' | 'amountCents' | 'paymentId'>,
     excludedByDefault: boolean,
   ): LedgerSession {
     const override = data.overrides[s.id]
     const date = toIsoDate(s.start)
+    const { trackFrom } = data.settings
     const client = s.clientId ? clients.get(s.clientId) : undefined
     const rate = client && rateAt(client, date)
     const computedCents = rate === undefined ? undefined : amountForDuration(s.durationMinutes, rate)
@@ -116,6 +122,8 @@ export function buildLedger(
       date,
       // Un'esclusione o reinclusione esplicita vince sul titolo escluso.
       excluded: override?.excluded ?? excludedByDefault,
+      // Le sessioni inserite a mano contano sempre: le hai aggiunte apposta.
+      beforeTracking: s.source === 'calendar' && trackFrom !== undefined && date < trackFrom,
       computedCents,
       amountCents: override?.amountCents ?? computedCents,
       paymentId: paymentOf.get(s.id),
@@ -151,8 +159,8 @@ export function buildLedger(
 
   return {
     sessions,
-    unclassified: sessions.filter((s) => s.source === 'calendar' && !s.excluded && !s.clientId),
-    excluded: sessions.filter((s) => s.excluded),
+    unclassified: sessions.filter((s) => s.source === 'calendar' && !s.excluded && !s.clientId && !s.beforeTracking),
+    excluded: sessions.filter((s) => s.excluded && !s.beforeTracking),
     anomalies,
   }
 }
@@ -171,8 +179,18 @@ export interface ClientSummary {
   unpaidBeforePayFrom: number
 }
 
+/**
+ * Una sessione ancora da incassare: del cliente, non esclusa, non pagata, e successiva
+ * alla data "traccia dal". Fa eccezione un "pagare da" più vecchio: chi lo imposta sta
+ * dicendo che quel cliente deve pagare anche sessioni precedenti.
+ */
+function isOutstanding(s: LedgerSession, client: Client): boolean {
+  if (s.clientId !== client.id || s.excluded || s.paymentId) return false
+  return !s.beforeTracking || (client.payFrom !== undefined && s.date >= client.payFrom)
+}
+
 export function summarizeClient(ledger: Ledger, client: Client): ClientSummary {
-  const unpaid = ledger.sessions.filter((s) => s.clientId === client.id && !s.excluded && !s.paymentId)
+  const unpaid = ledger.sessions.filter((s) => isOutstanding(s, client))
   const payFrom = client.payFrom
   const due = payFrom ? unpaid.filter((s) => s.date >= payFrom) : unpaid
   return {

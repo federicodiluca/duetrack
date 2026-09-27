@@ -141,6 +141,18 @@ describe('summarizeClient', () => {
     expect(summary).toMatchObject({ dueCents: 4000, missingRate: 2 })
   })
 
+  it('treats sessions before the tracking start as settled, unless payFrom goes further back', () => {
+    const data = { ...dataWith(davide), settings: { ...emptyData().settings, trackFrom: '2026-06-01' } }
+    const ledger = buildLedger(events, data, window)
+    expect(summarizeClient(ledger, davide).due.map((s) => s.id)).toEqual(['cal:e3'])
+    // Cecilia non è un cliente, ma il suo evento è dopo la data di partenza: da classificare.
+    expect(ledger.unclassified.map((s) => s.id)).toEqual(['cal:e4'])
+
+    const client = { ...davide, payFrom: '2026-05-26' }
+    const earlier = buildLedger(events, { ...data, clients: [client] }, window)
+    expect(summarizeClient(earlier, client).due.map((s) => s.id)).toEqual(['cal:e2', 'cal:e3'])
+  })
+
   it('picks the oldest N due sessions', () => {
     const summary = summarizeClient(buildLedger(events, dataWith(davide), window), davide)
     expect(oldestDue(summary, 2).map((s) => s.id)).toEqual(['cal:e1', 'cal:e2'])

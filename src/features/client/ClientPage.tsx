@@ -169,6 +169,13 @@ export function ClientPage() {
               ? `Nascoste ${pluralize(unpaidBeforePayFrom, 'sessione non pagata', 'sessioni non pagate')} prima del ${formatIsoDate(client.payFrom)}.`
               : `Mostro le sessioni dal ${formatIsoDate(client.payFrom)} in poi.`
             : 'Per chi paga dopo un periodo: imposta la data e vedi solo le sessioni da lì in poi.'}
+          {client.payFrom && data.settings.trackFrom && client.payFrom < data.settings.trackFrom && (
+            <>
+              {' '}
+              È prima della data di partenza ({formatIsoDate(data.settings.trackFrom)}): per {client.name} rileggo il calendario
+              anche da lì.
+            </>
+          )}
         </p>
       </section>
 

@@ -85,6 +85,7 @@ describe('isEmptyData', () => {
         durationMinutes: 60,
         clientId: 'a',
         excluded: false,
+        beforeTracking: false,
         amountCents: 100,
       },
     ])
