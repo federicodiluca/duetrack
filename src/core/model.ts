@@ -104,6 +104,23 @@ export function emptyData(): DuetrackData {
   }
 }
 
+/**
+ * Controlla dati letti da fuori (IndexedDB, file su Drive) e completa i campi aggiunti
+ * dopo il loro salvataggio con i valori di default. Lancia un errore se non sono dati Duetrack.
+ */
+export function normalizeData(value: unknown): DuetrackData {
+  const stored = value as Partial<DuetrackData> | null
+  if (!stored || typeof stored !== 'object' || !Array.isArray(stored.clients) || !Array.isArray(stored.payments)) {
+    throw new Error('Il file non contiene dati di Duetrack')
+  }
+  if (stored.schemaVersion !== SCHEMA_VERSION) {
+    // Nessuna migrazione esiste ancora: la prima servirà quando cambierà il formato.
+    throw new Error(`Formato dei dati non supportato (versione ${stored.schemaVersion})`)
+  }
+  const empty = emptyData()
+  return { ...empty, ...stored, settings: { ...empty.settings, ...stored.settings } } as DuetrackData
+}
+
 /** La data locale di un istante, come IsoDate. */
 export function toIsoDate(date: Date): IsoDate {
   const pad = (n: number) => String(n).padStart(2, '0')

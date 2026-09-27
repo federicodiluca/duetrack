@@ -2,6 +2,7 @@ import { RefreshCw } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'wouter'
 import { Credits } from '@/components/Credits'
+import { SyncIndicator } from '@/components/SyncIndicator'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
 import { formatTime } from '@/lib/format'
@@ -24,10 +25,19 @@ export function Layout({ children }: { children: ReactNode }) {
           <img src="/favicon.svg" alt="" className="size-7" />
           Duetrack
         </Link>
-        <Button variant="ghost" size="sm" onClick={reload} disabled={status === 'loading'} title="Rileggi il calendario">
-          <RefreshCw className={cn(status === 'loading' && 'animate-spin')} />
-          {status === 'loading' ? 'Aggiorno…' : loadedAt ? `Aggiornato alle ${formatTime(loadedAt)}` : 'Aggiorna'}
-        </Button>
+        <div className="flex items-center gap-1">
+          <SyncIndicator />
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={reload}
+            disabled={status === 'loading'}
+            title={loadedAt ? `Calendario letto alle ${formatTime(loadedAt)}: tocca per rileggerlo` : 'Rileggi il calendario'}
+          >
+            <RefreshCw className={cn(status === 'loading' && 'animate-spin')} />
+            {status === 'loading' ? 'Leggo…' : 'Aggiorna'}
+          </Button>
+        </div>
       </header>
 
       <nav className="-mx-2.5 flex flex-wrap gap-1 pb-4" aria-label="Sezioni">

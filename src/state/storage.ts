@@ -3,24 +3,35 @@
 // basate su eventi, dietro un get/set con le Promise.
 
 import { get, set } from 'idb-keyval'
-import { type DuetrackData, emptyData, SCHEMA_VERSION } from '@/core/model'
+import { type DuetrackData, emptyData, normalizeData } from '@/core/model'
 import { DEMO } from '@/demo'
 
 // La demo salva altrove, per non mescolare dati inventati con quelli veri.
-const KEY = DEMO ? 'duetrack.demo' : 'duetrack.data'
+const DATA_KEY = DEMO ? 'duetrack.demo' : 'duetrack.data'
+const SYNC_KEY = 'duetrack.sync'
+
+/** Dove siamo rispetto al file su Drive: sopravvive alla chiusura dell'app. */
+export interface SyncMeta {
+  fileId?: string
+  /** Versione del file su Drive da cui partono i dati locali. */
+  baseVersion?: string
+  /** Modifiche locali non ancora scritte su Drive. */
+  dirty: boolean
+}
 
 export async function loadData(): Promise<DuetrackData> {
-  const stored = await get<DuetrackData>(KEY)
-  if (!stored) return emptyData()
-  if (stored.schemaVersion !== SCHEMA_VERSION) {
-    // Nessuna migrazione esiste ancora: la prima servirà quando cambierà il formato.
-    throw new Error(`Formato dei dati non supportato (versione ${stored.schemaVersion})`)
-  }
-  // Campi aggiunti dopo i primi salvataggi prendono il valore di default.
-  const empty = emptyData()
-  return { ...empty, ...stored, settings: { ...empty.settings, ...stored.settings } }
+  const stored = await get<unknown>(DATA_KEY)
+  return stored === undefined ? emptyData() : normalizeData(stored)
 }
 
 export async function saveData(data: DuetrackData): Promise<void> {
-  await set(KEY, data)
+  await set(DATA_KEY, data)
+}
+
+export async function loadSyncMeta(): Promise<SyncMeta> {
+  return (await get<SyncMeta>(SYNC_KEY)) ?? { dirty: false }
+}
+
+export async function saveSyncMeta(meta: SyncMeta): Promise<void> {
+  await set(SYNC_KEY, meta)
 }

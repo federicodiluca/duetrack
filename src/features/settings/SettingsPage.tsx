@@ -12,7 +12,7 @@ export function SettingsPage() {
   const { signOut } = useAuth()
 
   function exportData() {
-    // Finché non c'è il salvataggio su Drive, questo file è il backup.
+    // Una copia da tenere dove si vuole, indipendente da Drive e da Duetrack.
     const blob = new Blob([JSON.stringify(data, null, 2)], { type: 'application/json' })
     const url = URL.createObjectURL(blob)
     const link = document.createElement('a')
@@ -52,7 +52,8 @@ export function SettingsPage() {
       <section className="grid gap-3">
         <h2 className="font-heading text-lg font-semibold">Dati</h2>
         <p className="text-sm text-muted-foreground">
-          I dati stanno solo in questo browser. Scarica una copia di sicurezza ogni tanto.
+          Clienti, tariffe e pagamenti stanno su questo dispositivo e nel file <code>duetrack-data.json</code> sul tuo Google
+          Drive, che tiene allineati telefono e computer. Duetrack vede solo i file che ha creato lui.
         </p>
         <div className="flex flex-wrap gap-2">
           <Button variant="outline" onClick={exportData}>

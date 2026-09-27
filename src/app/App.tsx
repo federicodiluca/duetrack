@@ -1,5 +1,6 @@
 import { Route, Router, Switch } from 'wouter'
 import { useHashLocation } from 'wouter/use-hash-location'
+import { ConflictDialog } from '@/components/ConflictDialog'
 import { Toaster } from '@/components/ui/sonner'
 import { ClientPage } from '@/features/client/ClientPage'
 import { OverviewPage } from '@/features/overview/OverviewPage'
@@ -14,10 +15,16 @@ import { SignInScreen } from './SignInScreen'
 
 function Gate() {
   const { token } = useAuth()
-  const { data } = useData()
+  const { data, initialSyncDone } = useData()
 
   if (!token) return <SignInScreen />
-  if (!data.settings.calendarId || !data.settings.trackFrom) return <SetupScreen />
+  if (!data.settings.calendarId || !data.settings.trackFrom) {
+    // Su un dispositivo nuovo la configurazione può già essere su Drive: prima si guarda lì.
+    if (!initialSyncDone) {
+      return <p className="grid min-h-dvh place-items-center text-muted-foreground">Cerco i tuoi dati su Google Drive…</p>
+    }
+    return <SetupScreen />
+  }
 
   return (
     <CalendarProvider>
@@ -44,6 +51,7 @@ export default function App() {
     <AuthProvider>
       <DataProvider>
         <Gate />
+        <ConflictDialog />
       </DataProvider>
       <Toaster position="bottom-center" />
     </AuthProvider>

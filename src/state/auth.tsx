@@ -1,5 +1,5 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useState } from 'react'
-import { CALENDAR_SCOPES, GOOGLE_CLIENT_ID } from '@/config'
+import { GOOGLE_SCOPES, GOOGLE_CLIENT_ID } from '@/config'
 import { DEMO } from '@/demo'
 import { type AccessToken, requestAccessToken } from '@/google/auth'
 
@@ -27,7 +27,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     if (DEMO) return setToken({ value: 'demo', expiresAt: Date.now() + 24 * 3_600_000 })
     setSigningIn(true)
     try {
-      setToken(await requestAccessToken(GOOGLE_CLIENT_ID, CALENDAR_SCOPES))
+      setToken(await requestAccessToken(GOOGLE_CLIENT_ID, GOOGLE_SCOPES))
     } finally {
       setSigningIn(false)
     }
