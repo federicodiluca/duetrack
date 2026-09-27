@@ -11,8 +11,9 @@ resta l'unica cosa da aggiornare: niente più note parallele da tenere allineate
 
 ## Come funziona
 
-- **Un calendario dedicato**, con il nome del cliente come titolo dell'evento (`📚 Davide`).
-  La durata dell'evento è la durata della sessione.
+- **Un calendario dedicato**, con il nome del cliente come titolo dell'evento (`Davide`).
+  Parole come "ripetizioni" ed eventuali emoji nel titolo vengono ignorate. La durata
+  dell'evento è la durata della sessione.
 - **Importo proporzionale**: 1h30 a 20 €/h fa 30 €. Ogni importo si può correggere a mano.
 - **"Pagare da"**: per chi paga dopo un periodo, imposti una data e vedi ore e totale da lì
   in poi; un tocco segna pagato tutto il blocco, e si può annullare.
