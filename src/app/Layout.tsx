@@ -1,7 +1,8 @@
+import { Settings } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'wouter'
 import { Credits } from '@/components/Credits'
-import { CalendarSyncIcon } from '@/components/icons'
+import { CalendarSyncIcon, CoinStackIcon, ReportIcon, SortIcon } from '@/components/icons'
 import { SyncIndicator } from '@/components/SyncIndicator'
 import { Button } from '@/components/ui/button'
 import { cn } from '@/lib/utils'
@@ -13,6 +14,8 @@ const navLink = (isActive: boolean) =>
     'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground',
     isActive && 'bg-secondary text-foreground',
   )
+
+const navIcon = 'hidden size-4 sm:block'
 
 export function Layout({ children }: { children: ReactNode }) {
   const { status, loadedAt, reload, ledger } = useCalendar()
@@ -42,18 +45,22 @@ export function Layout({ children }: { children: ReactNode }) {
 
       <nav className="-mx-2.5 flex flex-wrap gap-1 pb-4" aria-label="Sezioni">
         <Link to="/" className={navLink}>
+          <CoinStackIcon className={navIcon} />
           Chi deve cosa
         </Link>
         <Link to="/da-classificare" className={navLink}>
+          <SortIcon className={navIcon} />
           Da classificare
           {unclassified > 0 && (
             <span className="rounded-full bg-brand px-1.5 text-xs font-semibold text-brand-foreground tabular-nums">{unclassified}</span>
           )}
         </Link>
         <Link to="/resoconto" className={navLink}>
+          <ReportIcon className={navIcon} />
           Resoconto
         </Link>
         <Link to="/impostazioni" className={navLink}>
+          <Settings className={navIcon} />
           Impostazioni
         </Link>
       </nav>

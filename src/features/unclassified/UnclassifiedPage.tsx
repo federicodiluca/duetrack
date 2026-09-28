@@ -1,6 +1,6 @@
 import { useState } from 'react'
 import { ClientDialog } from '@/components/ClientDialog'
-import { ClientAddIcon } from '@/components/icons'
+import { ClientAddIcon, SortIcon } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { addAlias, excludeTitle } from '@/core/actions'
@@ -71,9 +71,13 @@ export function UnclassifiedPage() {
       </div>
 
       {groups.length === 0 ? (
-        <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-          {status === 'loading' ? 'Leggo il calendario…' : 'Tutto classificato.'}
-        </p>
+        <div className="grid justify-items-center gap-2 rounded-lg border border-dashed p-8 text-center">
+          <SortIcon className="size-10 text-muted-foreground" />
+          <p className="font-medium">{status === 'loading' ? 'Leggo il calendario…' : 'Tutto classificato'}</p>
+          {status !== 'loading' && (
+            <p className="text-sm text-muted-foreground">Ogni evento del calendario ha il suo cliente, o è escluso.</p>
+          )}
+        </div>
       ) : (
         <ul className="grid gap-3">
           {groups.map((group) => (

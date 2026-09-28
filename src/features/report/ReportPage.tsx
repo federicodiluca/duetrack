@@ -1,6 +1,6 @@
 import { useMemo, useState } from 'react'
 import { Link } from 'wouter'
-import { ExportIcon } from '@/components/icons'
+import { ExportIcon, ReportIcon } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
@@ -297,9 +297,12 @@ export function ReportPage() {
             </table>
           </div>
         ) : (
-          <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">
-            {range.status === 'loading' ? 'Leggo il calendario…' : 'Nessuna sessione in questo periodo.'}
-          </p>
+          <div className="grid justify-items-center gap-2 rounded-lg border border-dashed p-8 text-center">
+            <ReportIcon className="size-10 text-muted-foreground" />
+            <p className="text-sm text-muted-foreground">
+              {range.status === 'loading' ? 'Leggo il calendario…' : 'Nessuna sessione in questo periodo.'}
+            </p>
+          </div>
         )}
 
         {report.sessions.length > 0 && (

@@ -33,10 +33,7 @@ export function OverviewPage() {
   const [sort, setSort] = useState<Sort>('due')
 
   const lastDates = useMemo(() => lastSessionDates(ledger), [ledger])
-  const inactive = useMemo(
-    () => inactiveClients(data.clients, lastDates, toIsoDate(new Date())),
-    [data.clients, lastDates],
-  )
+  const inactive = useMemo(() => inactiveClients(data.clients, lastDates, toIsoDate(new Date())), [data.clients, lastDates])
 
   const owing = summaries.filter((s) => s.due.length > 0)
   const totalCents = owing.reduce((sum, s) => sum + s.dueCents, 0)
@@ -64,7 +61,9 @@ export function OverviewPage() {
         <p className="text-sm font-medium text-muted-foreground">Da incassare</p>
         <p className="font-heading text-4xl font-semibold tabular-nums">{formatMoney(totalCents, data.currency)}</p>
         <p className="text-sm text-muted-foreground">
-          {owing.length === 0 ? 'Nessuno ti deve niente.' : `${pluralize(owing.length, 'cliente', 'clienti')} con sessioni da pagare`}
+          {owing.length === 0
+            ? 'Nessuno ti deve niente.'
+            : `${pluralize(owing.length, 'cliente', 'clienti')} con sessioni da pagare`}
         </p>
       </section>
 
@@ -142,28 +141,37 @@ export function OverviewPage() {
         )}
 
         {visible.length > 0 ? (
-          <ul className="divide-y rounded-lg border bg-card">
-            {visible.map((s) => (
-              <li key={s.client.id}>
-                <Link to={`/clienti/${s.client.id}`} className="flex items-center gap-3 p-3 transition-colors hover:bg-muted/50">
-                  <div className="grid flex-1 gap-0.5">
-                    <span className="font-medium">{s.client.name}</span>
-                    <span className="text-sm text-muted-foreground">
-                      {s.due.length === 0
-                        ? 'Tutto pagato'
-                        : `${pluralize(s.due.length, 'sessione', 'sessioni')} · ${formatDuration(s.dueMinutes)}`}
-                      {s.client.payFrom && ` · da ${formatIsoDate(s.client.payFrom)}`}
-                    </span>
-                  </div>
-                  {s.missingRate > 0 && <Badge variant="destructive">Tariffa mancante</Badge>}
-                  <span className={`font-semibold tabular-nums ${s.dueCents === 0 ? 'text-muted-foreground' : ''}`}>
-                    {formatMoney(s.dueCents, data.currency)}
-                  </span>
-                  <ChevronRight className="size-4 text-muted-foreground" />
-                </Link>
-              </li>
-            ))}
-          </ul>
+          <div className="grid gap-4">
+            {[visible.filter((s) => s.due.length > 0), visible.filter((s) => s.due.length === 0)]
+              .filter((group) => group.length > 0)
+              .map((group) => (
+                <ul key={group[0].due.length > 0 ? 'owing' : 'settled'} className="divide-y rounded-lg border bg-card">
+                  {group.map((s) => (
+                    <li key={s.client.id}>
+                      <Link
+                        to={`/clienti/${s.client.id}`}
+                        className="flex items-center gap-3 p-3 transition-colors hover:bg-muted/50"
+                      >
+                        <div className="grid flex-1 gap-0.5">
+                          <span className="font-medium">{s.client.name}</span>
+                          <span className="text-sm text-muted-foreground">
+                            {s.due.length === 0
+                              ? 'Tutto pagato'
+                              : `${pluralize(s.due.length, 'sessione', 'sessioni')} · ${formatDuration(s.dueMinutes)}`}
+                            {s.client.payFrom && ` · da ${formatIsoDate(s.client.payFrom)}`}
+                          </span>
+                        </div>
+                        {s.missingRate > 0 && <Badge variant="destructive">Tariffa mancante</Badge>}
+                        <span className={`font-semibold tabular-nums ${s.dueCents === 0 ? 'text-muted-foreground' : ''}`}>
+                          {formatMoney(s.dueCents, data.currency)}
+                        </span>
+                        <ChevronRight className="size-4 text-muted-foreground" />
+                      </Link>
+                    </li>
+                  ))}
+                </ul>
+              ))}
+          </div>
         ) : (
           query && <p className="text-sm text-muted-foreground">Nessun cliente corrisponde a “{query}”.</p>
         )}
@@ -178,7 +186,10 @@ export function OverviewPage() {
           <ul className="divide-y rounded-lg border">
             {inactive.map(({ client, lastSession, days }) => (
               <li key={client.id}>
-                <Link to={`/clienti/${client.id}`} className="flex items-center gap-3 p-3 text-sm transition-colors hover:bg-muted/50">
+                <Link
+                  to={`/clienti/${client.id}`}
+                  className="flex items-center gap-3 p-3 text-sm transition-colors hover:bg-muted/50"
+                >
                   <span className="flex-1 font-medium">{client.name}</span>
                   <span className="text-muted-foreground">
                     {lastSession
@@ -194,9 +205,7 @@ export function OverviewPage() {
         </section>
       )}
 
-      {creating && (
-        <ClientDialog open onOpenChange={setCreating} onSaved={(client) => navigate(`/clienti/${client.id}`)} />
-      )}
+      {creating && <ClientDialog open onOpenChange={setCreating} onSaved={(client) => navigate(`/clienti/${client.id}`)} />}
     </div>
   )
 }

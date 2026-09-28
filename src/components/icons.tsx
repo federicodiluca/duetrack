@@ -83,6 +83,17 @@ export function ClientAddIcon(props: IconProps) {
   )
 }
 
+/** Vassoio con una freccia che entra: eventi da smistare, cioè da classificare. */
+export function SortIcon(props: IconProps) {
+  return (
+    <Icon {...props}>
+      <path d="M3.5 13.5h4.5l1.5 2.5h5l1.5-2.5h4.5v4.5a2 2 0 0 1-2 2h-13a2 2 0 0 1-2-2Z" {...tint} />
+      <path d="M3.5 13.5h4.5l1.5 2.5h5l1.5-2.5h4.5M3.5 13.5l2.2-6.2A2 2 0 0 1 7.6 6h1.9M20.5 13.5l-2.2-6.2A2 2 0 0 0 16.4 6h-1.9M3.5 13.5V18a2 2 0 0 0 2 2h13a2 2 0 0 0 2-2v-4.5" />
+      <path d="M12 3v8M9.5 8.5 12 11l2.5-2.5" />
+    </Icon>
+  )
+}
+
 /** Barre con una moneta: il resoconto. */
 export function ReportIcon(props: IconProps) {
   return (
