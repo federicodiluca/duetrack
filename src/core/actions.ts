@@ -87,6 +87,11 @@ export function setAmount(data: DuetrackData, sessionId: SessionId, amountCents:
   return setOverride(data, sessionId, { amountCents })
 }
 
+/** Nota su una sessione; vuota la toglie. */
+export function setSessionNote(data: DuetrackData, sessionId: SessionId, note: string): DuetrackData {
+  return setOverride(data, sessionId, { note: note.trim() || undefined })
+}
+
 export function addManualSession(data: DuetrackData, session: ManualSession): DuetrackData {
   assertClient(data, session.clientId)
   if (session.durationMinutes <= 0) throw new ActionError('La durata deve essere positiva')

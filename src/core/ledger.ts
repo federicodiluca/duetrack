@@ -33,6 +33,8 @@ export interface LedgerSession {
   source: 'calendar' | 'manual'
   /** Il titolo senza emoji né parole ignorate. */
   title: string
+  /** Nota sulla sessione: quella scritta a mano, o quella data alla sessione inserita a mano. */
+  note?: string
   /** Chiave normalizzata del titolo, per il confronto con clienti e titoli esclusi. */
   key: string
   start: Date
@@ -103,8 +105,9 @@ export function buildLedger(
     const id: SessionId = `man:${m.id}`
     const clientId = data.overrides[id]?.clientId ?? m.clientId
     const start = new Date(m.start)
-    const title = m.note ?? ''
-    sessions.push(finish({ id, source: 'manual', title, key: titleKey(title), start, durationMinutes: m.durationMinutes, clientId }, false))
+    sessions.push(
+      finish({ id, source: 'manual', title: '', key: '', note: m.note, start, durationMinutes: m.durationMinutes, clientId }, false),
+    )
   }
 
   function finish(
@@ -127,6 +130,7 @@ export function buildLedger(
       computedCents,
       amountCents: override?.amountCents ?? computedCents,
       paymentId: paymentOf.get(s.id),
+      note: override?.note ?? s.note,
     }
   }
 

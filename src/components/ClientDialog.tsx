@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
 import { addClient, updateClient } from '@/core/actions'
 import { type Client, SINCE_ALWAYS } from '@/core/model'
 import { parseMoney } from '@/core/money'
@@ -32,6 +33,7 @@ export function ClientDialog({ open, onOpenChange, client, suggestedName, onSave
   const [name, setName] = useState(client?.name ?? suggestedName ?? '')
   const [aliases, setAliases] = useState(client?.aliases.join(', ') ?? '')
   const [rate, setRate] = useState('')
+  const [note, setNote] = useState(client?.note ?? '')
   const [error, setError] = useState<string>()
 
   function submit(event: React.FormEvent) {
@@ -40,8 +42,8 @@ export function ClientDialog({ open, onOpenChange, client, suggestedName, onSave
     if (!trimmed) return setError('Il nome è obbligatorio')
 
     if (client) {
-      const updated = { ...client, name: trimmed, aliases: splitAliases(aliases) }
-      if (apply((d) => updateClient(d, client.id, { name: updated.name, aliases: updated.aliases }))) {
+      const updated = { ...client, name: trimmed, aliases: splitAliases(aliases), note: note.trim() || undefined }
+      if (apply((d) => updateClient(d, client.id, { name: updated.name, aliases: updated.aliases, note: updated.note }))) {
         onSaved?.(updated)
         onOpenChange(false)
       }
@@ -55,6 +57,7 @@ export function ClientDialog({ open, onOpenChange, client, suggestedName, onSave
       name: trimmed,
       aliases: splitAliases(aliases),
       rates: [{ from: SINCE_ALWAYS, centsPerHour: cents }],
+      ...(note.trim() && { note: note.trim() }),
     }
     if (apply((d) => addClient(d, created))) {
       onSaved?.(created)
@@ -86,6 +89,15 @@ export function ClientDialog({ open, onOpenChange, client, suggestedName, onSave
               <Input id="client-rate" inputMode="decimal" value={rate} onChange={(e) => setRate(e.target.value)} placeholder="25" />
             </div>
           )}
+          <div className="grid gap-2">
+            <Label htmlFor="client-note">Note (facoltative)</Label>
+            <Textarea
+              id="client-note"
+              value={note}
+              onChange={(e) => setNote(e.target.value)}
+              placeholder="es. contatto del genitore, accordi sul pagamento"
+            />
+          </div>
           {error && (
             <p role="alert" className="text-sm text-destructive">
               {error}

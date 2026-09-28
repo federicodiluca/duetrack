@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { addManualSession, removeRate, setAmount, setRate } from '@/core/actions'
+import { addManualSession, removeRate, setAmount, setRate, setSessionNote } from '@/core/actions'
 import { Textarea } from '@/components/ui/textarea'
 import type { ClientSummary, LedgerSession } from '@/core/ledger'
 import { type Client, SINCE_ALWAYS, toIsoDate } from '@/core/model'
@@ -70,6 +70,45 @@ export function AmountDialog({ session, onOpenChange }: DialogProps & { session:
                 onClick={() => apply((d) => setAmount(d, session.id, undefined)) && onOpenChange(false)}
               >
                 Usa l’importo calcolato
+              </Button>
+            )}
+            <Button type="submit">Salva</Button>
+          </DialogFooter>
+        </form>
+      </DialogContent>
+    </Dialog>
+  )
+}
+
+/** Nota su una sessione, es. "fatta online" o "recupero". */
+export function NoteDialog({ session, onOpenChange }: DialogProps & { session: LedgerSession }) {
+  const { apply } = useData()
+  const [value, setValue] = useState(session.note ?? '')
+
+  function submit(event: React.FormEvent) {
+    event.preventDefault()
+    if (apply((d) => setSessionNote(d, session.id, value))) onOpenChange(false)
+  }
+
+  return (
+    <Dialog open onOpenChange={onOpenChange}>
+      <DialogContent>
+        <form onSubmit={submit} className="grid gap-4">
+          <DialogHeader>
+            <DialogTitle>Nota sulla sessione</DialogTitle>
+            <DialogDescription>
+              {formatDay(session.start)}, {formatDuration(session.durationMinutes)}. Resta in Duetrack: il calendario non viene
+              modificato.
+            </DialogDescription>
+          </DialogHeader>
+          <Label htmlFor="session-note" className="sr-only">
+            Nota
+          </Label>
+          <Textarea id="session-note" value={value} onChange={(e) => setValue(e.target.value)} placeholder="es. fatta online, recupero" autoFocus />
+          <DialogFooter>
+            {session.note && (
+              <Button type="button" variant="outline" onClick={() => apply((d) => setSessionNote(d, session.id, '')) && onOpenChange(false)}>
+                Togli la nota
               </Button>
             )}
             <Button type="submit">Salva</Button>

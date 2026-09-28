@@ -14,6 +14,7 @@ import {
   setAmount,
   setOverride,
   setRate,
+  setSessionNote,
   undoPayment,
   updateSettings,
 } from './actions'
@@ -167,5 +168,22 @@ describe('settings', () => {
 
     data = excludeTitle(data, 'davide', false)
     expect(data.settings.excludedTitles).toEqual([])
+  })
+})
+
+describe('notes', () => {
+  it('sets, shows and clears a note on a calendar session', () => {
+    let data = setSessionNote(setup(), 'cal:e1', '  fatta online ')
+    expect(due(data)[0].note).toBe('fatta online')
+    data = setSessionNote(data, 'cal:e1', '   ')
+    expect(data.overrides).toEqual({})
+    expect(due(data)[0].note).toBeUndefined()
+  })
+
+  it('shows the note of a manual session, and lets a new note replace it', () => {
+    let data = addManualSession(setup(), { id: 'm1', clientId: 'davide', start: '2026-09-20T12:00:00Z', durationMinutes: 60, note: 'recupero' })
+    expect(due(data).find((s) => s.id === 'man:m1')?.note).toBe('recupero')
+    data = setSessionNote(data, 'man:m1', 'recupero di giugno')
+    expect(due(data).find((s) => s.id === 'man:m1')?.note).toBe('recupero di giugno')
   })
 })

@@ -1,5 +1,5 @@
-import { EllipsisVertical, PenLine } from 'lucide-react'
-import { CalendarAddIcon } from '@/components/icons'
+import { CalendarClock, CircleSlash, EllipsisVertical, NotebookPen, PenLine, Trash2, UserRound } from 'lucide-react'
+import { CalendarAddIcon, CoinCheckIcon } from '@/components/icons'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
@@ -23,6 +23,7 @@ export interface SessionActions {
   onPay: () => void
   onPayFrom: () => void
   onEditAmount: () => void
+  onEditNote: () => void
   onExclude: () => void
   onAssign: (clientId: string) => void
   onDeleteManual?: () => void
@@ -55,8 +56,8 @@ export function SessionRow({ session, currency, selected, onSelectedChange, othe
               <CalendarAddIcon /> a mano
             </Badge>
           )}
-          {session.source === 'manual' && session.title && <span>· {session.title}</span>}
         </span>
+        {session.note && <span className="text-sm text-muted-foreground italic">{session.note}</span>}
       </label>
       <span className="flex items-center gap-1.5 font-semibold tabular-nums">
         {overridden && <PenLine className="size-3.5 text-muted-foreground" aria-label="Importo corretto a mano" />}
@@ -74,14 +75,23 @@ export function SessionRow({ session, currency, selected, onSelectedChange, othe
         </DropdownMenuTrigger>
         <DropdownMenuContent align="end">
           <DropdownMenuItem onSelect={actions.onPay} disabled={session.amountCents === undefined}>
-            Segna pagata solo questa
+            <CoinCheckIcon /> Segna pagata solo questa
           </DropdownMenuItem>
-          <DropdownMenuItem onSelect={actions.onPayFrom}>Pagare da questa data</DropdownMenuItem>
-          <DropdownMenuItem onSelect={actions.onEditAmount}>Correggi importo</DropdownMenuItem>
+          <DropdownMenuItem onSelect={actions.onPayFrom}>
+            <CalendarClock /> Pagare da questa data
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={actions.onEditAmount}>
+            <PenLine /> Correggi importo
+          </DropdownMenuItem>
+          <DropdownMenuItem onSelect={actions.onEditNote}>
+            <NotebookPen /> {session.note ? 'Modifica nota' : 'Aggiungi nota'}
+          </DropdownMenuItem>
           <DropdownMenuSeparator />
           {otherClients.length > 0 && (
             <DropdownMenuSub>
-              <DropdownMenuSubTrigger>Assegna a…</DropdownMenuSubTrigger>
+              <DropdownMenuSubTrigger>
+                <UserRound /> Assegna a…
+              </DropdownMenuSubTrigger>
               <DropdownMenuSubContent>
                 {otherClients.map((c) => (
                   <DropdownMenuItem key={c.id} onSelect={() => actions.onAssign(c.id)}>
@@ -93,11 +103,11 @@ export function SessionRow({ session, currency, selected, onSelectedChange, othe
           )}
           {actions.onDeleteManual ? (
             <DropdownMenuItem variant="destructive" onSelect={actions.onDeleteManual}>
-              Elimina sessione
+              <Trash2 /> Elimina sessione
             </DropdownMenuItem>
           ) : (
             <DropdownMenuItem variant="destructive" onSelect={actions.onExclude}>
-              Non era una sessione
+              <CircleSlash /> Non era una sessione
             </DropdownMenuItem>
           )}
         </DropdownMenuContent>

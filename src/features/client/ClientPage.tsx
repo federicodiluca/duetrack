@@ -1,4 +1,4 @@
-import { ArrowLeft, EllipsisVertical, X } from 'lucide-react'
+import { ArrowLeft, EllipsisVertical, NotebookPen, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link, useLocation, useParams } from 'wouter'
 import { toast } from 'sonner'
@@ -34,7 +34,7 @@ import { formatDay, formatIsoDate, formatTime, pluralize } from '@/lib/format'
 import { newId } from '@/lib/id'
 import { useCalendar } from '@/state/calendar'
 import { useData } from '@/state/data'
-import { AmountDialog, ManualSessionDialog, PayOldestDialog, RatesDialog, ReminderDialog } from './dialogs'
+import { AmountDialog, ManualSessionDialog, NoteDialog, PayOldestDialog, RatesDialog, ReminderDialog } from './dialogs'
 import { SessionRow } from './SessionRow'
 
 type OpenDialog =
@@ -45,6 +45,7 @@ type OpenDialog =
   | { kind: 'reminder' }
   | { kind: 'delete' }
   | { kind: 'amount'; session: LedgerSession }
+  | { kind: 'note'; session: LedgerSession }
   | { kind: 'confirm-pay'; sessions: LedgerSession[] }
   | { kind: 'undo'; paymentId: string }
 
@@ -124,6 +125,12 @@ export function ClientPage() {
               </Button>
               {client.aliases.length > 0 && <span>· anche “{client.aliases.join('”, “')}”</span>}
             </p>
+            {client.note && (
+              <p className="mt-1 flex max-w-prose items-start gap-2 text-sm whitespace-pre-line text-muted-foreground">
+                <NotebookPen className="mt-0.5 size-4 shrink-0" aria-label="Note" />
+                {client.note}
+              </p>
+            )}
           </div>
           <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -132,7 +139,7 @@ export function ClientPage() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={() => setDialog({ kind: 'edit' })}>Modifica nome e alias</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => setDialog({ kind: 'edit' })}>Modifica nome, alias e note</DropdownMenuItem>
               <DropdownMenuItem onSelect={() => setDialog({ kind: 'rates' })}>Tariffe</DropdownMenuItem>
               <DropdownMenuItem onSelect={() => setDialog({ kind: 'manual' })}>Aggiungi sessione a mano</DropdownMenuItem>
               <DropdownMenuSeparator />
@@ -208,7 +215,11 @@ export function ClientPage() {
         </div>
 
         {due.length === 0 ? (
-          <p className="rounded-lg border border-dashed p-6 text-center text-sm text-muted-foreground">Nessuna sessione da pagare.</p>
+          <div className="grid justify-items-center gap-2 rounded-lg border border-dashed p-8 text-center">
+            <CoinCheckIcon className="size-10 text-paid" />
+            <p className="font-medium">Tutto pagato</p>
+            <p className="text-sm text-muted-foreground">Nessuna sessione da incassare per {client.name}.</p>
+          </div>
         ) : (
           <div className="rounded-lg border bg-card">
             <div className="flex items-center gap-3 border-b px-3 py-2 text-sm text-muted-foreground">
@@ -235,6 +246,7 @@ export function ClientPage() {
                     onPay: () => pay([session]),
                     onPayFrom: () => apply((d) => setPayFrom(d, client.id, session.date)),
                     onEditAmount: () => setDialog({ kind: 'amount', session }),
+                    onEditNote: () => setDialog({ kind: 'note', session }),
                     onExclude: () => apply((d) => excludeSession(d, session.id)),
                     onAssign: (id) => apply((d) => assignSession(d, session.id, id)),
                     onDeleteManual:
@@ -317,6 +329,7 @@ export function ClientPage() {
       {dialog?.kind === 'rates' && <RatesDialog client={client} onOpenChange={close} />}
       {dialog?.kind === 'manual' && <ManualSessionDialog client={client} onOpenChange={close} />}
       {dialog?.kind === 'amount' && <AmountDialog session={dialog.session} onOpenChange={close} />}
+      {dialog?.kind === 'note' && <NoteDialog session={dialog.session} onOpenChange={close} />}
       {dialog?.kind === 'pay-oldest' && <PayOldestDialog due={due} currency={data.currency} onPay={pay} onOpenChange={close} />}
       {dialog?.kind === 'reminder' && <ReminderDialog summary={summary} currency={data.currency} onOpenChange={close} />}
       <ConfirmDialog

@@ -28,6 +28,8 @@ export interface Client {
   rates: Rate[]
   /** Se impostata, la vista del dovuto parte da questa data. */
   payFrom?: IsoDate
+  /** Appunti liberi: contatti, accordi, cose da ricordare. */
+  note?: string
 }
 
 /** Una sessione che non è in calendario, inserita a mano. */
