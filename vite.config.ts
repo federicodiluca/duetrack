@@ -40,9 +40,10 @@ export default defineConfig({
     tailwindcss(),
     contentSecurityPolicy(),
     // App installabile e utilizzabile offline: il service worker tiene in cache i file
-    // dell'app, e a ogni pubblicazione si aggiorna da solo alla visita successiva.
+    // dell'app; quando ne arriva una versione nuova, UpdatePrompt propone di aggiornare.
     VitePWA({
-      registerType: 'autoUpdate',
+      // "prompt": la versione nuova parte quando l'utente sceglie Aggiorna (vedi UpdatePrompt).
+      registerType: 'prompt',
       includeAssets: ['favicon.svg', 'robots.txt', 'icons/apple-touch-icon.png'],
       manifest: {
         name: 'Duetrack',
