@@ -1,18 +1,18 @@
-import { Route, Router, Switch } from 'wouter'
-import { useHashLocation } from 'wouter/use-hash-location'
-import { ConflictDialog } from '@/components/ConflictDialog'
+import { lazy, Suspense } from 'react'
 import { Toaster } from '@/components/ui/sonner'
-import { ClientPage } from '@/features/client/ClientPage'
-import { OverviewPage } from '@/features/overview/OverviewPage'
-import { ReportPage } from '@/features/report/ReportPage'
-import { SettingsPage } from '@/features/settings/SettingsPage'
-import { UnclassifiedPage } from '@/features/unclassified/UnclassifiedPage'
+import { UpdatePrompt } from '@/components/UpdatePrompt'
 import { AuthProvider, useAuth } from '@/state/auth'
-import { CalendarProvider } from '@/state/calendar'
 import { DataProvider, useData } from '@/state/data'
-import { Layout } from './Layout'
-import { SetupScreen } from './SetupScreen'
 import { SignInScreen } from './SignInScreen'
+
+// Caricate solo quando servono: la schermata di accesso resta leggera e si apre prima.
+const MainApp = lazy(() => import('./MainApp'))
+const SetupScreen = lazy(() => import('./SetupScreen').then((m) => ({ default: m.SetupScreen })))
+const ConflictDialog = lazy(() => import('@/components/ConflictDialog').then((m) => ({ default: m.ConflictDialog })))
+
+function Waiting({ text }: { text: string }) {
+  return <main className="grid min-h-dvh place-items-center text-muted-foreground">{text}</main>
+}
 
 function Gate() {
   const { token } = useAuth()
@@ -21,41 +21,30 @@ function Gate() {
   if (!token) return <SignInScreen />
   if (!data.settings.calendarId || !data.settings.trackFrom) {
     // Su un dispositivo nuovo la configurazione può già essere su Drive: prima si guarda lì.
-    if (!initialSyncDone) {
-      return <p className="grid min-h-dvh place-items-center text-muted-foreground">Cerco i tuoi dati su Google Drive…</p>
-    }
+    if (!initialSyncDone) return <Waiting text="Cerco i tuoi dati su Google Drive…" />
     return <SetupScreen />
   }
+  return <MainApp />
+}
 
-  return (
-    <CalendarProvider>
-      {/*
-        Indirizzi con # (#/clienti/…) invece degli URL "veri": GitHub Pages serve solo file
-        statici e risponderebbe 404 a /clienti/… ricaricando la pagina.
-      */}
-      <Router hook={useHashLocation}>
-        <Layout>
-          <Switch>
-            <Route path="/clienti/:clientId" component={ClientPage} />
-            <Route path="/da-classificare" component={UnclassifiedPage} />
-            <Route path="/resoconto" component={ReportPage} />
-            <Route path="/impostazioni" component={SettingsPage} />
-            <Route component={OverviewPage} />
-          </Switch>
-        </Layout>
-      </Router>
-    </CalendarProvider>
-  )
+/** La finestra "quale versione tieni?": il suo codice si scarica solo se serve. */
+function Conflict() {
+  const { sync } = useData()
+  return sync.state === 'conflict' ? <ConflictDialog /> : null
 }
 
 export default function App() {
   return (
     <AuthProvider>
       <DataProvider>
-        <Gate />
-        <ConflictDialog />
+        <Suspense fallback={<Waiting text="Carico Duetrack…" />}>
+          <Gate />
+          <Conflict />
+        </Suspense>
       </DataProvider>
       <Toaster position="bottom-center" />
+      {/* In demo e in sviluppo il service worker non c'è. */}
+      {import.meta.env.PROD && <UpdatePrompt />}
     </AuthProvider>
   )
 }

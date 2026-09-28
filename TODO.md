@@ -1,9 +1,13 @@
 # TODO — Duetrack
 
-**Dove siamo (27/09/2026).** In produzione su <https://duetrack.federicodiluca.com> (GitHub
+**Dove siamo (28/09/2026).** In produzione su <https://duetrack.federicodiluca.com> (GitHub
 Pages, pubblicato dal workflow a ogni push su `main`): lettura del calendario, clienti e
-tariffe con storico, pagamenti, resoconto con confronto e grafico mensile, promemoria,
-sincronizzazione sul Google Drive dell'utente, app installabile, CSP e informativa privacy.
+tariffe con storico, note, pagamenti, resoconto con confronto e grafico mensile,
+promemoria, sincronizzazione sul Google Drive dell'utente, app installabile con avviso di
+nuova versione, CSP, informativa privacy e anteprima per la condivisione del link.
+
+Lighthouse sulla schermata di accesso (build di produzione, 28/09): prestazioni 99,
+accessibilità 100, best practice 100. SEO 66 per scelta: la pagina è `noindex`.
 
 ---
 
@@ -18,34 +22,28 @@ sincronizzazione sul Google Drive dell'utente, app installabile, CSP e informati
   quindi il sottodominio non va indicizzato. Quello che conta è il sito personale con la
   pagina Progetti: verificare che la proprietà `federicodiluca.com` ci sia e inviare la
   sitemap dopo aver pubblicato la scheda
+- [ ] **Audit SEO del sito personale**, in particolare della pagina Progetti con la scheda di
+  Duetrack: è la parte che deve portare visite (quello dell'app è fatto, vedi sopra)
 - [ ] **Verifica OAuth di Google** (solo se l'app si apre ad altri utenti): oggi è in modalità
   "Testing" e funziona solo per gli account di prova. Servono informativa privacy (fatta:
   `/privacy/`), dominio verificato e un video dimostrativo
 
 ## Da fare sul codice
 
-- [ ] **Aggiornamento dell'app installata**. Problema visto: dopo una pubblicazione il tab
-  "Resoconto" non c'era finché non si ricaricava la pagina (e poi si rifaceva il login).
-  Causa: il service worker scarica la versione nuova in background, ma la pagina aperta
-  continua a usare quella vecchia fino al ricaricamento. Soluzione: un avviso "È
-  disponibile una nuova versione · Aggiorna" (vite-plugin-pwa lo supporta con
-  `registerType: 'prompt'`), da legare al punto sul login qui sotto
 - [ ] **Non rifare il login a ogni apertura** — *non partiamo ora*. Oggi il token Google vive
   solo in memoria (ADR 0001), quindi ogni ricaricamento chiede di nuovo l'accesso. Strade da
   valutare: tentare un rinnovo silenzioso all'avvio (Google Identity Services, se l'utente
   ha già dato il consenso e ha la sessione Google aperta); oppure salvare il token per la
   sua ora di validità, con i rischi che comporta; oppure mostrare subito i dati locali e
   chiedere il login solo per sincronizzare. Va rivisto l'ADR 0001
-- [ ] **Note**: un campo note sulla singola sessione (es. "recupero", "fatto online") e sul
-  cliente (es. contatto del genitore, accordi). Le correzioni per sessione hanno già un
-  campo `note` nel modello, manca l'interfaccia; per il cliente va aggiunto
-- [ ] **Più icone SVG** disegnate per Duetrack, qua e là: stati vuoti ("Tutto pagato",
-  "Nessuna sessione"), intestazioni delle sezioni, menu delle azioni
-- [ ] **Lista clienti**: separare con un breve spazio chi ha sessioni da pagare da chi è
-  "Tutto pagato"
-- [ ] **Immagine di condivisione**: oggi l'app non ha tag Open Graph né immagine. Servono
-  `og:title`, `og:description`, `og:image` (1200×630, con logo e frase) per l'anteprima
-  quando si condivide il link. Il `noindex` resta: le anteprime non dipendono
-  dall'indicizzazione
-- [ ] **Audit SEO completo**, sia dell'app (tag, anteprime, prestazioni, accessibilità) sia
-  della scheda sul sito personale, che è la parte che deve portare visite
+
+## Fatto
+
+- [x] Avviso "È disponibile una nuova versione · Aggiorna" (il tab Resoconto che non compariva
+  senza ricaricare), con controllo degli aggiornamenti ogni ora e al ritorno sull'app
+- [x] Note sulla singola sessione e sul cliente
+- [x] Icone SVG nel menu, nelle azioni delle sessioni e negli stati vuoti
+- [x] Lista clienti divisa: chi deve pagare, poi chi è "Tutto pagato"
+- [x] Immagine di condivisione (`public/social-share.png`, `npm run social:build`) e tag Open Graph
+- [x] Audit dell'app: `<main>` nelle schermate di accesso e configurazione, codice diviso in modo
+  che la schermata di accesso non scarichi le pagine interne

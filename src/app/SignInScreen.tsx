@@ -10,7 +10,7 @@ export function SignInScreen() {
   const start = () => signIn().catch((e: unknown) => toast.error(e instanceof Error ? e.message : 'Accesso non riuscito'))
 
   return (
-    <div className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-8 px-4 py-10">
+    <main className="mx-auto flex min-h-dvh max-w-md flex-col justify-center gap-8 px-4 py-10">
       <div className="grid gap-4">
         <img src="/favicon.svg" alt="" className="size-14" />
         <h1 className="font-heading text-3xl font-semibold text-balance">Chi ti deve cosa, letto dal tuo Google Calendar</h1>
@@ -28,6 +28,6 @@ export function SignInScreen() {
         <li>I tuoi dati restano sul tuo dispositivo e sul tuo Google Drive: nessun altro server li raccoglie.</li>
       </ul>
       <Credits />
-    </div>
+    </main>
   )
 }

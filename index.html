@@ -3,13 +3,34 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- L'app è un guscio privato dietro login: la pagina pubblica indicizzabile sta su federicodiluca.com -->
+    <title>Duetrack · Chi ti deve cosa, letto dal tuo Google Calendar</title>
+    <meta
+      name="description"
+      content="Tracker dei pagamenti per chi lavora a ore: legge le sessioni da Google Calendar, calcola quanto deve ogni cliente e tiene traccia di pagamenti e resoconti. Gratuito, senza server."
+    />
+    <!-- L'app è un guscio privato dietro login: la pagina pubblica indicizzabile sta su federicodiluca.com.
+         Le anteprime qui sotto funzionano lo stesso: non dipendono dall'indicizzazione. -->
     <meta name="robots" content="noindex, nofollow" />
     <meta name="author" content="Federico Di Luca" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
     <meta name="theme-color" content="#1d2b4f" />
-    <title>Duetrack</title>
+
+    <!-- Anteprima quando il link viene condiviso (WhatsApp, Telegram, LinkedIn, …) -->
+    <meta property="og:type" content="website" />
+    <meta property="og:site_name" content="Duetrack" />
+    <meta property="og:locale" content="it_IT" />
+    <meta property="og:url" content="https://duetrack.federicodiluca.com/" />
+    <meta property="og:title" content="Duetrack · Chi ti deve cosa, letto dal tuo Google Calendar" />
+    <meta
+      property="og:description"
+      content="Tariffe, pagamenti e resoconti per chi lavora a ore, letti dal calendario. Nessun server: i dati restano sul tuo Google Drive."
+    />
+    <meta property="og:image" content="https://duetrack.federicodiluca.com/social-share.png" />
+    <meta property="og:image:width" content="1200" />
+    <meta property="og:image:height" content="630" />
+    <meta property="og:image:alt" content="Il logo di Duetrack, una moneta sul foglio di un calendario, con il motto dell'app" />
+    <meta name="twitter:card" content="summary_large_image" />
   </head>
   <body>
     <div id="root"></div>
