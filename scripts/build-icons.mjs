@@ -8,9 +8,10 @@
  *   public/icons/maskable-512.png       512×512, a tutto campo, disegno nell'area sicura
  *   public/icons/apple-touch-icon.png   180×180, a tutto campo: iOS arrotonda da sé
  *                                       e riempirebbe di nero gli angoli trasparenti
+ *   docs/oauth/logo-120.png             120×120, logo della schermata di consenso Google
  */
 import sharp from 'sharp'
-import { readFileSync, writeFileSync } from 'node:fs'
+import { mkdirSync, readFileSync, writeFileSync } from 'node:fs'
 import { dirname, resolve } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
@@ -38,6 +39,10 @@ await render(512).png().toFile(out('icon-512.png'))
 // nel cerchio centrale che copre l'80% del lato.
 await (await fullBleed(512, 0.78)).png().toFile(out('maskable-512.png'))
 await (await fullBleed(180, 1)).png().toFile(out('apple-touch-icon.png'))
+// Logo per la schermata di consenso OAuth di Google: quadrato 120×120, caricato a mano in
+// Google Cloud Console (vedi docs/oauth-verification.md). Non serve all'app, quindi sta in docs/.
+mkdirSync(resolve(root, 'docs/oauth'), { recursive: true })
+await (await fullBleed(120, 1)).png().toFile(resolve(root, 'docs/oauth/logo-120.png'))
 writeFileSync(resolve(root, 'public/favicon.svg'), src)
 
-console.log('icone aggiornate: favicon.svg, icon-192, icon-512, maskable-512, apple-touch-icon')
+console.log('icone aggiornate: favicon.svg, icon-192, icon-512, maskable-512, apple-touch-icon, docs/oauth/logo-120.png')

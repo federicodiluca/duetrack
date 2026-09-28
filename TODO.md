@@ -13,20 +13,15 @@ accessibilità 100, best practice 100. SEO 66 per scelta: la pagina è `noindex`
 
 ## Da fare tu (fuori dal repo)
 
-- [ ] **Portfolio**: pubblicare la scheda di Duetrack sul sito personale. C'è già un commit
-  locale nel repo del sito (`aedea4e`, "progetto Duetrack"); decidere se metterla in cima
-  (in home compaiono solo i primi tre progetti) e aggiornare la frase di "Chi sono" sui
-  progetti "più recenti"
-- [ ] **README del profilo GitHub**: aggiungere Duetrack
-- [ ] **Google Search Console**: l'app è `noindex` di proposito (dati privati dietro login),
-  quindi il sottodominio non va indicizzato. Quello che conta è il sito personale con la
-  pagina Progetti: verificare che la proprietà `federicodiluca.com` ci sia e inviare la
-  sitemap dopo aver pubblicato la scheda
-- [ ] **Audit SEO del sito personale**, in particolare della pagina Progetti con la scheda di
-  Duetrack: è la parte che deve portare visite (quello dell'app è fatto, vedi sopra)
-- [ ] **Verifica OAuth di Google** (solo se l'app si apre ad altri utenti): oggi è in modalità
-  "Testing" e funziona solo per gli account di prova. Servono informativa privacy (fatta:
-  `/privacy/`), dominio verificato e un video dimostrativo
+- [ ] **Verifica OAuth di Google**, per aprire Duetrack a chiunque: la procedura completa, con i
+  testi da incollare e la scaletta del video, è in [docs/oauth-verification.md](docs/oauth-verification.md).
+  In sintesi:
+  - [ ] dominio `federicodiluca.com` verificato in **Google Search Console** con lo stesso
+    account del progetto Cloud (serve alla verifica, anche se per il SEO non la usiamo)
+  - [ ] logo [`docs/oauth/logo-120.png`](docs/oauth/logo-120.png) caricato nel Branding
+  - [ ] i tre scope in "Accesso ai dati", con le motivazioni
+  - [ ] app pubblicata ("In produzione")
+  - [ ] video dimostrativo su YouTube, poi invio della richiesta
 
 ## Da fare sul codice
 
@@ -39,6 +34,9 @@ accessibilità 100, best practice 100. SEO 66 per scelta: la pagina è `noindex`
 
 ## Fatto
 
+- [x] Scheda di Duetrack nel portfolio e nel README del profilo GitHub (fatto da te)
+- [x] Home page pubblica con cosa fa l'app e perché chiede l'accesso a Google, informativa
+  privacy anche in inglese, logo per la schermata di consenso
 - [x] Avviso "È disponibile una nuova versione · Aggiorna" (il tab Resoconto che non compariva
   senza ricaricare), con controllo degli aggiornamenti ogni ora e al ritorno sull'app
 - [x] Note sulla singola sessione e sul cliente
