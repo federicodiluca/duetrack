@@ -13,15 +13,15 @@ accessibilità 100, best practice 100. SEO 66 per scelta: la pagina è `noindex`
 
 ## Da fare tu (fuori dal repo)
 
-- [ ] **Verifica OAuth di Google**, per aprire Duetrack a chiunque: la procedura completa, con i
-  testi da incollare e la scaletta del video, è in [docs/oauth-verification.md](docs/oauth-verification.md).
-  In sintesi:
-  - [ ] dominio `federicodiluca.com` verificato in **Google Search Console** con lo stesso
-    account del progetto Cloud (serve alla verifica, anche se per il SEO non la usiamo)
-  - [ ] logo [`docs/oauth/logo-120.png`](docs/oauth/logo-120.png) caricato nel Branding
-  - [ ] i tre scope in "Accesso ai dati", con le motivazioni
-  - [ ] app pubblicata ("In produzione")
-  - [ ] video dimostrativo su YouTube, poi invio della richiesta
+- [ ] **Rinominare la cartella** locale da `payment-tracker` a `duetrack`, a VS Code chiuso
+  (la memoria di Claude Code è già copiata anche sul nuovo percorso)
+
+**Verifica OAuth: decisa di no (28/09/2026).** L'app è pubblicata "In produzione" senza
+verifica: chiunque può accedere, ma vede l'avviso "app non verificata" (Avanzate → Vai a
+Duetrack) e c'è un limite di 100 utenti. La verifica richiederebbe un video dimostrativo;
+se un giorno servisse, la procedura è in [docs/oauth-verification.md](docs/oauth-verification.md).
+Alternativa senza video da valutare solo in quel caso: il permesso `calendar.app.created`
+(solo calendari creati dall'app), se Google lo classifica come non sensibile.
 
 ## Da fare sul codice
 
