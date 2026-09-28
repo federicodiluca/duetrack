@@ -7,6 +7,7 @@
     <meta name="author" content="Federico Di Luca" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <title>Privacy · Duetrack</title>
+    <link rel="alternate" hreflang="en" href="https://duetrack.federicodiluca.com/privacy/en/" />
     <style>
       :root {
         color-scheme: light dark;
@@ -91,7 +92,7 @@
         <img src="/favicon.svg" alt="" />
         <div>
           <h1>Informativa sulla privacy di Duetrack</h1>
-          <p class="muted" style="margin: 0.25rem 0 0">Ultimo aggiornamento: 27 settembre 2026</p>
+          <p class="muted" style="margin: 0.25rem 0 0">Ultimo aggiornamento: 28 settembre 2026 · <a href="/privacy/en/" hreflang="en" lang="en">English version</a></p>
         </div>
       </header>
 
@@ -111,14 +112,16 @@
       <p>Al momento dell’accesso Duetrack chiede a Google tre permessi, i più ristretti disponibili:</p>
       <ul>
         <li>
-          <strong>Elenco dei tuoi calendari</strong>, in sola lettura, per farti scegliere quello in cui segni le sessioni.
+          <strong>Elenco dei tuoi calendari</strong>, in sola lettura
+          (<code>calendar.calendarlist.readonly</code>), per farti scegliere quello in cui segni le sessioni.
         </li>
         <li>
-          <strong>Eventi dei calendari di tua proprietà</strong>, in sola lettura: titolo, inizio e fine degli eventi del
+          <strong>Eventi dei calendari di tua proprietà</strong>, in sola lettura
+          (<code>calendar.events.owned.readonly</code>): titolo, inizio e fine degli eventi del
           calendario scelto, per riconoscere il cliente e calcolare durata e importo. Duetrack non modifica mai il calendario.
         </li>
         <li>
-          <strong>File creati da Duetrack sul tuo Google Drive</strong>: un solo file, <code>duetrack-data.json</code>, con
+          <strong>File creati da Duetrack sul tuo Google Drive</strong> (<code>drive.file</code>): un solo file, <code>duetrack-data.json</code>, con
           clienti, tariffe e pagamenti, per tenere allineati i tuoi dispositivi. Duetrack non può vedere gli altri file del
           tuo Drive.
         </li>
@@ -147,7 +150,7 @@
         <a href="https://developers.google.com/terms/api-services-user-data-policy" target="_blank" rel="noopener"
           >Norme sui dati utente dei servizi API di Google</a
         >, inclusi i requisiti di uso limitato. I dati servono solo a mostrarti le tue sessioni e i tuoi conti: non vengono
-        venduti, non vengono usati per pubblicità e non vengono trasferiti a terzi.
+        venduti, non vengono usati per pubblicità e non vengono trasferiti a terzi. Nessuna persona li legge.
       </p>
       <p class="muted" lang="en">
         Duetrack’s use and transfer to any other app of information received from Google APIs will adhere to the Google API
