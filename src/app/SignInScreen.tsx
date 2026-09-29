@@ -2,6 +2,7 @@ import { CalendarSearch, FolderLock, ListTree } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { toast } from 'sonner'
 import { Credits } from '@/components/Credits'
+import { InstallButton } from '@/components/InstallButton'
 import { CoinCheckIcon, GoogleIcon, ReminderIcon, ReportIcon } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/state/auth'
@@ -46,7 +47,10 @@ export function SignInScreen() {
           sessioni dal calendario che scegli, calcola quanto ti deve ogni cliente in base a durata e tariffa oraria, e ti lascia
           segnare i pagamenti. Gratuito, senza pubblicità, senza server.
         </p>
-        {signInButton}
+        <div className="flex flex-col gap-3 sm:flex-row">
+          {signInButton}
+          <InstallButton size="lg" variant="ghost" label="Installa l’app" className="h-11 w-full text-base sm:w-fit" />
+        </div>
       </section>
 
       <section className="grid gap-4">

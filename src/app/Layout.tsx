@@ -2,6 +2,7 @@ import { Settings } from 'lucide-react'
 import type { ReactNode } from 'react'
 import { Link } from 'wouter'
 import { Credits } from '@/components/Credits'
+import { InstallButton } from '@/components/InstallButton'
 import { CalendarSyncIcon, CoinStackIcon, ReportIcon, SortIcon } from '@/components/icons'
 import { SyncIndicator } from '@/components/SyncIndicator'
 import { Button } from '@/components/ui/button'
@@ -30,6 +31,7 @@ export function Layout({ children }: { children: ReactNode }) {
         </Link>
         <div className="flex items-center gap-1">
           <SyncIndicator />
+          <InstallButton variant="ghost" size="sm" />
           <Button
             variant="ghost"
             size="sm"

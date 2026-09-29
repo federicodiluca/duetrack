@@ -34,6 +34,8 @@ Alternativa senza video da valutare solo in quel caso: il permesso `calendar.app
 
 ## Fatto
 
+- [x] Pulsante "Installa" nella home e nell'intestazione: finestra del browser dove c'è,
+  istruzioni passo passo su iPhone, iPad e Safari per Mac
 - [x] Scheda di Duetrack nel portfolio e nel README del profilo GitHub (fatto da te)
 - [x] Home page pubblica con cosa fa l'app e perché chiede l'accesso a Google, informativa
   privacy anche in inglese, logo per la schermata di consenso
