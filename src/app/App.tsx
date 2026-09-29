@@ -36,7 +36,9 @@ function Conflict() {
 export default function App() {
   return (
     <AuthProvider>
-      <DataProvider>
+      {/* Mentre legge i dati locali mostra già la home: all'avvio non c'è mai un token (vive solo
+          in memoria), e così la home scritta nell'HTML dal prerender non sparisce per un attimo. */}
+      <DataProvider loading={<SignInScreen />}>
         <Suspense fallback={<Waiting text="Carico Duetrack…" />}>
           <Gate />
           <Conflict />

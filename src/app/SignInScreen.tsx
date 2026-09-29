@@ -6,6 +6,7 @@ import { InstallButton } from '@/components/InstallButton'
 import { CoinCheckIcon, GoogleIcon, ReminderIcon, ReportIcon } from '@/components/icons'
 import { Button } from '@/components/ui/button'
 import { useAuth } from '@/state/auth'
+import { faqs } from './faq'
 
 function Item({ icon, title, children }: { icon: ReactNode; title: string; children: ReactNode }) {
   return (
@@ -92,6 +93,18 @@ export function SignInScreen() {
           .
         </p>
         {signInButton}
+      </section>
+
+      <section className="grid gap-4">
+        <h2 className="font-heading text-xl font-semibold">Domande frequenti</h2>
+        <dl className="grid gap-4">
+          {faqs.map((faq) => (
+            <div key={faq.question} className="grid gap-1">
+              <dt className="font-medium">{faq.question}</dt>
+              <dd className="text-sm text-muted-foreground">{faq.answer}</dd>
+            </div>
+          ))}
+        </dl>
       </section>
 
       <footer className="border-t pt-6">

@@ -1,5 +1,7 @@
 # 0007 — SEO sul sito principale, app non indicizzabile
 
+**Superata** dallo [0009](0009-home-indicizzabile.md) (29/09/2026).
+
 ## Contesto
 
 Il progetto deve portare visibilità a federicodiluca.com. L'app però contiene solo dati

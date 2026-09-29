@@ -6,8 +6,8 @@ tariffe con storico, note, pagamenti, resoconto con confronto e grafico mensile,
 promemoria, sincronizzazione sul Google Drive dell'utente, app installabile con avviso di
 nuova versione, CSP, informativa privacy e anteprima per la condivisione del link.
 
-Lighthouse sulla schermata di accesso (build di produzione, 28/09): prestazioni 99,
-accessibilità 100, best practice 100. SEO 66 per scelta: la pagina è `noindex`.
+Lighthouse sulla home (build di produzione, 29/09): prestazioni 98, accessibilità 100,
+best practice 100, SEO 100 (era 66 prima dell'ADR 0009, quando la pagina era `noindex`).
 
 ---
 
@@ -34,6 +34,8 @@ Alternativa senza video da valutare solo in quel caso: il permesso `calendar.app
 
 ## Fatto
 
+- [x] Home indicizzabile (ADR 0009): scritta nell'HTML durante la build, FAQ, dati
+  strutturati, sitemap e privacy indicizzabile
 - [x] Pulsante "Installa" nella home e nell'intestazione: finestra del browser dove c'è,
   istruzioni passo passo su iPhone, iPad e Safari per Mac
 - [x] Scheda di Duetrack nel portfolio e nel README del profilo GitHub (fatto da te)

@@ -1,7 +1,7 @@
 import tailwindcss from '@tailwindcss/vite'
 import react from '@vitejs/plugin-react'
 import { fileURLToPath, URL } from 'node:url'
-import { defineConfig, type Plugin } from 'vite'
+import { createServer, defineConfig, type Plugin } from 'vite'
 import { VitePWA } from 'vite-plugin-pwa'
 
 /**
@@ -34,11 +34,43 @@ function contentSecurityPolicy(): Plugin {
   }
 }
 
+/**
+ * Scrive la home nell'HTML durante la build (ADR 0009): senza, index.html arriva con un
+ * <div id="root"> vuoto e motori di ricerca e assistenti AI vedono la pagina solo se
+ * eseguono il JavaScript. Aggiunge anche i dati strutturati. Gira prima che il service
+ * worker calcoli la cache, così la versione in cache è quella completa.
+ */
+function prerenderHome(): Plugin {
+  return {
+    name: 'duetrack-prerender',
+    apply: 'build',
+    transformIndexHtml: {
+      order: 'post',
+      async handler(html) {
+        const server = await createServer({ server: { middlewareMode: true, hmr: false }, appType: 'custom', logLevel: 'error' })
+        try {
+          const { renderHome, structuredData } = await server.ssrLoadModule('/src/prerender.tsx')
+          const jsonLd = (structuredData() as unknown[])
+            // "<" escapato: un testo con "</script>" non può chiudere il blocco in anticipo.
+            .map((data) => `<script type="application/ld+json">${JSON.stringify(data).replaceAll('<', '\\u003c')}</script>`)
+            .join('\n    ')
+          return html
+            .replace('<div id="root"></div>', `<div id="root">${renderHome()}</div>`)
+            .replace('</head>', `  ${jsonLd}\n  </head>`)
+        } finally {
+          await server.close()
+        }
+      },
+    },
+  }
+}
+
 export default defineConfig({
   plugins: [
     react(),
     tailwindcss(),
     contentSecurityPolicy(),
+    prerenderHome(),
     // App installabile e utilizzabile offline: il service worker tiene in cache i file
     // dell'app; quando ne arriva una versione nuova, UpdatePrompt propone di aggiornare.
     VitePWA({

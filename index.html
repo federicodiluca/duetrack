@@ -8,9 +8,8 @@
       name="description"
       content="Tracker dei pagamenti per chi lavora a ore: legge le sessioni da Google Calendar, calcola quanto deve ogni cliente e tiene traccia di pagamenti e resoconti. Gratuito, senza server."
     />
-    <!-- L'app è un guscio privato dietro login: la pagina pubblica indicizzabile sta su federicodiluca.com.
-         Le anteprime qui sotto funzionano lo stesso: non dipendono dall'indicizzazione. -->
-    <meta name="robots" content="noindex, nofollow" />
+    <!-- Indicizzabile (ADR 0009): la home è pubblica; le sezioni dell'app stanno dopo il # e non sono pagine a sé. -->
+    <link rel="canonical" href="https://duetrack.federicodiluca.com/" />
     <meta name="author" content="Federico Di Luca" />
     <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />

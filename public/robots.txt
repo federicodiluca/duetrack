@@ -1,2 +1,5 @@
+# Tutto indicizzabile (ADR 0009): l'unica pagina è la home, i dati stanno dietro il login.
 User-agent: *
-Disallow: /
+Allow: /
+
+Sitemap: https://duetrack.federicodiluca.com/sitemap.xml

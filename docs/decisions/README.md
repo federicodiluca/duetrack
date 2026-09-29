@@ -12,5 +12,6 @@ Una decisione superata non si cancella: si scrive un nuovo ADR che la sostituisc
 | [0004](0004-calendario-in-sola-lettura.md) | Il calendario si legge soltanto, non si scrive | Accettata |
 | [0005](0005-modello-pagamenti.md) | Modello di sessioni, importi e pagamenti | Accettata |
 | [0006](0006-stack-react-vite.md) | React + Vite + TypeScript | Accettata |
-| [0007](0007-seo-e-dominio.md) | SEO sul sito principale, app non indicizzabile | Accettata |
+| [0007](0007-seo-e-dominio.md) | SEO sul sito principale, app non indicizzabile | Superata dallo 0009 |
 | [0008](0008-interfaccia.md) | Interfaccia: shadcn/ui, wouter, indirizzi con # | Accettata |
+| [0009](0009-home-indicizzabile.md) | Home indicizzabile, scritta nell'HTML durante la build | Accettata |

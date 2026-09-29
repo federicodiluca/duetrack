@@ -49,7 +49,8 @@ const drive: DriveApi = {
 // (es. crea cliente e aggiungi alias) finiscono in una sola scrittura.
 const PUSH_DELAY_MS = 1000
 
-export function DataProvider({ children }: { children: ReactNode }) {
+/** `loading`: cosa mostrare mentre si leggono i dati salvati sul dispositivo. */
+export function DataProvider({ children, loading = null }: { children: ReactNode; loading?: ReactNode }) {
   const { signOut } = useAuth()
   const [engine, setEngine] = useState<SyncEngine>()
   const [loadError, setLoadError] = useState<string>()
@@ -74,7 +75,7 @@ export function DataProvider({ children }: { children: ReactNode }) {
   }, [signOut])
 
   if (loadError) return <p className="p-6 text-destructive">Impossibile leggere i dati salvati: {loadError}</p>
-  if (!engine) return null
+  if (!engine) return loading
   return <EngineBridge engine={engine}>{children}</EngineBridge>
 }
 

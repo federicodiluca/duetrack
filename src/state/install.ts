@@ -26,26 +26,30 @@ function isStandalone() {
   )
 }
 
-const ua = navigator.userAgent
+// Nel prerender della home (vedi src/prerender.tsx) non c'è un browser: niente da installare.
+const inBrowser = typeof window !== 'undefined'
+const ua = inBrowser ? navigator.userAgent : ''
 // iPadOS si presenta come un Mac: lo tradisce lo schermo touch.
 const isIos = /iPad|iPhone|iPod/.test(ua) || (/Macintosh/.test(ua) && navigator.maxTouchPoints > 1)
 const isMacSafari = !isIos && /Macintosh/.test(ua) && /Safari/.test(ua) && !/Chrome|Chromium|Edg|Firefox|OPR/.test(ua)
 
 // Registrati al caricamento del modulo: l'evento può arrivare prima che React disegni la pagina.
-window.addEventListener('beforeinstallprompt', (e) => {
-  // Niente mini-barra automatica del browser: l'installazione parte dal nostro pulsante.
-  e.preventDefault()
-  deferred = e as BeforeInstallPromptEvent
-  notify()
-})
-window.addEventListener('appinstalled', () => {
-  installed = true
-  deferred = null
-  notify()
-})
+if (inBrowser) {
+  window.addEventListener('beforeinstallprompt', (e) => {
+    // Niente mini-barra automatica del browser: l'installazione parte dal nostro pulsante.
+    e.preventDefault()
+    deferred = e as BeforeInstallPromptEvent
+    notify()
+  })
+  window.addEventListener('appinstalled', () => {
+    installed = true
+    deferred = null
+    notify()
+  })
+}
 
 function getMode(): InstallMode {
-  if (installed || isStandalone()) return null
+  if (!inBrowser || installed || isStandalone()) return null
   if (deferred) return 'prompt'
   if (isIos) return 'ios'
   if (isMacSafari) return 'mac-safari'
@@ -69,5 +73,5 @@ export async function promptInstall() {
 }
 
 export function useInstallMode() {
-  return useSyncExternalStore(subscribe, getMode)
+  return useSyncExternalStore(subscribe, getMode, () => null)
 }
