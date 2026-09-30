@@ -1,3 +1,5 @@
+import { ShareApp } from '@/components/ShareApp'
+
 const link = 'font-medium text-foreground underline-offset-4 hover:underline'
 
 /** Chi ha fatto Duetrack e come contattarlo: nel footer e nella schermata di accesso. */
@@ -20,6 +22,8 @@ export function Credits() {
       <a className={link} href="/privacy/">
         Privacy
       </a>
+      {' · '}
+      <ShareApp className={link} />
     </p>
   )
 }
