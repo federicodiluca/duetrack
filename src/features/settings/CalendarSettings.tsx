@@ -13,6 +13,7 @@ import { useData } from '@/state/data'
 
 // Oltre due mesi le ricorrenze dicono poco: a quella distanza il calendario cambia ancora.
 const UPCOMING_CHOICES = [0, 1, 2, 4, 8]
+const INACTIVE_CHOICES = [0, 21, 30, 60, 90, 180]
 
 function firstOfMonth(): string {
   const now = new Date()
@@ -29,6 +30,7 @@ export function CalendarSettings({ submitLabel, onSaved }: { submitLabel: string
   const [trackFrom, setTrackFrom] = useState(data.settings.trackFrom ?? firstOfMonth())
   const [ignoredWords, setIgnoredWords] = useState(data.settings.ignoredWords.join(', '))
   const [upcomingWeeks, setUpcomingWeeks] = useState(String(data.settings.upcomingWeeks))
+  const [inactiveAfterDays, setInactiveAfterDays] = useState(String(data.settings.inactiveAfterDays))
 
   useEffect(() => {
     if (!token) return
@@ -43,7 +45,14 @@ export function CalendarSettings({ submitLabel, onSaved }: { submitLabel: string
       .split(',')
       .map((w) => w.trim())
       .filter(Boolean)
-    if (apply((d) => updateSettings(d, { calendarId, trackFrom, ignoredWords: words, upcomingWeeks: Number(upcomingWeeks) }))) onSaved?.()
+    const patch = {
+      calendarId,
+      trackFrom,
+      ignoredWords: words,
+      upcomingWeeks: Number(upcomingWeeks),
+      inactiveAfterDays: Number(inactiveAfterDays),
+    }
+    if (apply((d) => updateSettings(d, patch))) onSaved?.()
   }
 
   return (
@@ -101,6 +110,25 @@ export function CalendarSettings({ submitLabel, onSaved }: { submitLabel: string
         </Select>
         <p className="text-sm text-muted-foreground">
           Le sessioni future si vedono a parte e non entrano nel conto finché non sono passate.
+        </p>
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="inactive-after-days">Clienti che non vedi da un po’</Label>
+        <Select value={inactiveAfterDays} onValueChange={setInactiveAfterDays}>
+          <SelectTrigger id="inactive-after-days" className="w-fit">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {INACTIVE_CHOICES.map((days) => (
+              <SelectItem key={days} value={String(days)}>
+                {days === 0 ? 'Non segnalarli' : `Dopo ${days} giorni senza sessioni`}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-sm text-muted-foreground">
+          Nella panoramica, per accorgerti di chi si è perso per strada.
         </p>
       </div>
 

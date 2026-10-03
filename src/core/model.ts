@@ -89,6 +89,8 @@ export interface Settings {
   excludedTitles: string[]
   /** Quante settimane di sessioni in programma mostrare, fuori dal conto; 0 le nasconde. */
   upcomingWeeks: number
+  /** Dopo quanti giorni senza sessioni un cliente si considera inattivo; 0 non li segnala. */
+  inactiveAfterDays: number
 }
 
 export interface DuetrackData {
@@ -105,7 +107,7 @@ export function emptyData(): DuetrackData {
   return {
     schemaVersion: SCHEMA_VERSION,
     currency: 'EUR',
-    settings: { ignoredWords: [], excludedTitles: [], upcomingWeeks: 2 },
+    settings: { ignoredWords: [], excludedTitles: [], upcomingWeeks: 2, inactiveAfterDays: 60 },
     clients: [],
     manualSessions: [],
     overrides: {},

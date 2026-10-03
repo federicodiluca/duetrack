@@ -3,9 +3,6 @@
 import type { Ledger } from './ledger'
 import type { Client, IsoDate } from './model'
 
-/** Dopo quanti giorni senza sessioni un cliente si considera inattivo. */
-export const INACTIVE_AFTER_DAYS = 21
-
 /** L'ultima sessione (non esclusa) di ogni cliente, tra quelle lette. */
 export function lastSessionDates(ledger: Ledger): Map<string, IsoDate> {
   const last = new Map<string, IsoDate>()
@@ -37,7 +34,7 @@ export function inactiveClients(
   clients: Client[],
   last: Map<string, IsoDate>,
   today: IsoDate,
-  afterDays = INACTIVE_AFTER_DAYS,
+  afterDays: number,
 ): InactiveClient[] {
   return clients
     .map((client) => {

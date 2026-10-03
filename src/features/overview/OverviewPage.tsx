@@ -7,7 +7,7 @@ import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
-import { INACTIVE_AFTER_DAYS, inactiveClients, lastSessionDates } from '@/core/activity'
+import { inactiveClients, lastSessionDates } from '@/core/activity'
 import type { ClientSummary } from '@/core/ledger'
 import { toIsoDate } from '@/core/model'
 import { formatMoney } from '@/core/money'
@@ -35,7 +35,11 @@ export function OverviewPage() {
   const [sort, setSort] = useState<Sort>('due')
 
   const lastDates = useMemo(() => lastSessionDates(ledger), [ledger])
-  const inactive = useMemo(() => inactiveClients(data.clients, lastDates, toIsoDate(new Date())), [data.clients, lastDates])
+  const inactiveAfterDays = data.settings.inactiveAfterDays
+  const inactive = useMemo(
+    () => (inactiveAfterDays > 0 ? inactiveClients(data.clients, lastDates, toIsoDate(new Date()), inactiveAfterDays) : []),
+    [data.clients, lastDates, inactiveAfterDays],
+  )
 
   // Gruppi chiusi all'inizio: in vista resta chi deve pagare, il resto a un tocco.
   const [showSettled, setShowSettled] = useState(false)
@@ -215,7 +219,7 @@ export function OverviewPage() {
           open={showInactive}
           onToggle={() => setShowInactive((v) => !v)}
         >
-          <p className="text-sm text-muted-foreground">Nessuna sessione da almeno {INACTIVE_AFTER_DAYS} giorni.</p>
+          <p className="text-sm text-muted-foreground">Nessuna sessione da almeno {inactiveAfterDays} giorni.</p>
           <ul className="divide-y rounded-lg border">
             {inactive.map(({ client, lastSession, days }) => (
               <li key={client.id}>
