@@ -1,4 +1,4 @@
-import { ArrowLeft, EllipsisVertical, NotebookPen, X } from 'lucide-react'
+import { ArrowLeft, CalendarClock, EllipsisVertical, NotebookPen, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link, useLocation, useParams } from 'wouter'
 import { toast } from 'sonner'
@@ -55,7 +55,7 @@ export function ClientPage() {
   const { clientId } = useParams()
   const [, navigate] = useLocation()
   const { data, apply } = useData()
-  const { ledger, summaries } = useCalendar()
+  const { ledger, summaries, upcoming } = useCalendar()
   const [selected, setSelected] = useState<Set<SessionId>>(new Set())
   const [dialog, setDialog] = useState<OpenDialog>()
 
@@ -78,6 +78,7 @@ export function ClientPage() {
   const otherClients = data.clients.filter((c) => c.id !== client.id)
   const excluded = ledger.excluded.filter((s) => s.clientId === client.id)
   const anomalies = ledger.anomalies.filter((a) => payments.some((p) => p.id === a.paymentId))
+  const next = upcoming.filter((s) => s.clientId === client.id)
   const selectedSessions = due.filter((s) => selected.has(s.id))
   const allSelected = due.length > 0 && selectedSessions.length === due.length
   const close = () => setDialog(undefined)
@@ -157,6 +158,26 @@ export function ClientPage() {
             {pluralize(due.length, 'sessione', 'sessioni')} · {formatDuration(dueMinutes)}
           </p>
         </div>
+
+        {data.settings.upcomingWeeks > 0 && (
+          <p className="flex items-start gap-2 text-sm text-muted-foreground">
+            <CalendarClock className="mt-0.5 size-4 shrink-0" aria-hidden />
+            {next.length === 0 ? (
+              `Nessuna sessione in programma nelle prossime ${pluralize(data.settings.upcomingWeeks, 'settimana', 'settimane')}.`
+            ) : (
+              <span>
+                Prossima sessione{' '}
+                <span className="font-medium text-foreground">
+                  {formatDay(next[0].start)} alle {formatTime(next[0].start)}
+                </span>{' '}
+                · {formatDuration(next[0].durationMinutes)}
+                {next.length > 1 &&
+                  `, poi altre ${next.length - 1} nelle prossime ${pluralize(data.settings.upcomingWeeks, 'settimana', 'settimane')}`}
+                .
+              </span>
+            )}
+          </p>
+        )}
       </div>
 
       <section className="grid gap-2">

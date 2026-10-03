@@ -4,7 +4,7 @@ import { emptyData, normalizeData } from './model'
 describe('normalizeData', () => {
   it('fills settings added after the data was saved', () => {
     const old = { ...emptyData(), settings: { calendarId: 'cal' } }
-    expect(normalizeData(old).settings).toEqual({ calendarId: 'cal', ignoredWords: [], excludedTitles: [] })
+    expect(normalizeData(old).settings).toEqual({ calendarId: 'cal', ignoredWords: [], excludedTitles: [], upcomingWeeks: 2 })
   })
 
   it('rejects anything that is not Duetrack data', () => {

@@ -7,8 +7,12 @@ import { updateSettings } from '@/core/actions'
 import { toIsoDate } from '@/core/model'
 import { DEMO, demoCalendars } from '@/demo'
 import { type CalendarInfo, listOwnedCalendars } from '@/google/calendar'
+import { pluralize } from '@/lib/format'
 import { useAuth } from '@/state/auth'
 import { useData } from '@/state/data'
+
+// Oltre due mesi le ricorrenze dicono poco: a quella distanza il calendario cambia ancora.
+const UPCOMING_CHOICES = [0, 1, 2, 4, 8]
 
 function firstOfMonth(): string {
   const now = new Date()
@@ -24,6 +28,7 @@ export function CalendarSettings({ submitLabel, onSaved }: { submitLabel: string
   const [calendarId, setCalendarId] = useState(data.settings.calendarId ?? '')
   const [trackFrom, setTrackFrom] = useState(data.settings.trackFrom ?? firstOfMonth())
   const [ignoredWords, setIgnoredWords] = useState(data.settings.ignoredWords.join(', '))
+  const [upcomingWeeks, setUpcomingWeeks] = useState(String(data.settings.upcomingWeeks))
 
   useEffect(() => {
     if (!token) return
@@ -38,7 +43,7 @@ export function CalendarSettings({ submitLabel, onSaved }: { submitLabel: string
       .split(',')
       .map((w) => w.trim())
       .filter(Boolean)
-    if (apply((d) => updateSettings(d, { calendarId, trackFrom, ignoredWords: words }))) onSaved?.()
+    if (apply((d) => updateSettings(d, { calendarId, trackFrom, ignoredWords: words, upcomingWeeks: Number(upcomingWeeks) }))) onSaved?.()
   }
 
   return (
@@ -77,6 +82,25 @@ export function CalendarSettings({ submitLabel, onSaved }: { submitLabel: string
         <Input id="ignored-words" value={ignoredWords} onChange={(e) => setIgnoredWords(e.target.value)} placeholder="es. ripetizioni, lezione" />
         <p className="text-sm text-muted-foreground">
           Con “ripetizioni”, l’evento “Ripetizioni Giacomo” viene riconosciuto come Giacomo. Separa più parole con la virgola.
+        </p>
+      </div>
+
+      <div className="grid gap-2">
+        <Label htmlFor="upcoming-weeks">Sessioni in programma</Label>
+        <Select value={upcomingWeeks} onValueChange={setUpcomingWeeks}>
+          <SelectTrigger id="upcoming-weeks" className="w-fit">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            {UPCOMING_CHOICES.map((weeks) => (
+              <SelectItem key={weeks} value={String(weeks)}>
+                {weeks === 0 ? 'Non mostrarle' : `Prossime ${pluralize(weeks, 'settimana', 'settimane')}`}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        <p className="text-sm text-muted-foreground">
+          Le sessioni future si vedono a parte e non entrano nel conto finché non sono passate.
         </p>
       </div>
 

@@ -15,6 +15,7 @@ import { titleKey } from '@/core/title'
 import { formatIsoDate, pluralize } from '@/lib/format'
 import { useCalendar } from '@/state/calendar'
 import { useData } from '@/state/data'
+import { UpcomingSection } from './UpcomingSection'
 
 type Sort = 'due' | 'name' | 'recent'
 
@@ -26,7 +27,7 @@ const SORTS: Record<Sort, string> = {
 
 export function OverviewPage() {
   const { data } = useData()
-  const { status, error, ledger, summaries } = useCalendar()
+  const { status, error, ledger, summaries, upcoming } = useCalendar()
   const [, navigate] = useLocation()
   const [creating, setCreating] = useState(false)
   const [query, setQuery] = useState('')
@@ -176,6 +177,10 @@ export function OverviewPage() {
           query && <p className="text-sm text-muted-foreground">Nessun cliente corrisponde a “{query}”.</p>
         )}
       </section>
+
+      {data.settings.upcomingWeeks > 0 && summaries.length > 0 && (
+        <UpcomingSection upcoming={upcoming} clients={data.clients} weeks={data.settings.upcomingWeeks} />
+      )}
 
       {inactive.length > 0 && summaries.length > 0 && (
         <section className="grid gap-3">

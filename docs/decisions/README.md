@@ -15,3 +15,4 @@ Una decisione superata non si cancella: si scrive un nuovo ADR che la sostituisc
 | [0007](0007-seo-e-dominio.md) | SEO sul sito principale, app non indicizzabile | Superata dallo 0009 |
 | [0008](0008-interfaccia.md) | Interfaccia: shadcn/ui, wouter, indirizzi con # | Accettata |
 | [0009](0009-home-indicizzabile.md) | Home indicizzabile, scritta nell'HTML durante la build | Accettata |
+| [0010](0010-sessioni-in-programma.md) | Sessioni in programma lette a parte, fuori dal conto | Accettata |

@@ -1,7 +1,7 @@
-import { createContext, type ReactNode, useCallback, useContext, useMemo, useState } from 'react'
-import { buildLedger, type ClientSummary, type Ledger, summarizeClient } from '@/core/ledger'
+import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react'
+import { buildLedger, buildUpcoming, type ClientSummary, type Ledger, type LedgerSession, summarizeClient } from '@/core/ledger'
 import { useData } from './data'
-import { useCalendarRange } from './useCalendarRange'
+import { useCalendarRange, useUpcomingRange } from './useCalendarRange'
 
 interface CalendarContextValue {
   status: 'loading' | 'ready' | 'error'
@@ -11,7 +11,12 @@ interface CalendarContextValue {
   ledger: Ledger
   /** Un riepilogo per cliente, chi deve di più per primo. */
   summaries: ClientSummary[]
+  /** Le sessioni in programma, dalla prossima: fuori dal registro e dai conti. */
+  upcoming: LedgerSession[]
 }
+
+// Riletture al ritorno sull'app: non più di una ogni cinque minuti.
+const RELOAD_AFTER_MS = 5 * 60_000
 
 const CalendarContext = createContext<CalendarContextValue | null>(null)
 
@@ -28,7 +33,20 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
   )
   const { status, error, sessions, window, loadedAt } = useCalendarRange(readFrom, undefined, reloads)
 
+  const upcomingRange = useUpcomingRange(data.settings.upcomingWeeks, reloads)
+
   const reload = useCallback(() => setReloads((n) => n + 1), [])
+
+  // Tornando sull'app dopo un po' si rilegge: le sessioni finite nel frattempo passano
+  // dalle "prossime" al conto senza dover ricaricare la pagina.
+  useEffect(() => {
+    const onVisible = () => {
+      if (document.visibilityState !== 'visible' || !loadedAt) return
+      if (Date.now() - loadedAt.getTime() > RELOAD_AFTER_MS) reload()
+    }
+    document.addEventListener('visibilitychange', onVisible)
+    return () => document.removeEventListener('visibilitychange', onVisible)
+  }, [loadedAt, reload])
 
   // Il registro si ricalcola a ogni modifica dei dati, senza rileggere il calendario.
   const ledger = useMemo(() => buildLedger(sessions, data, window), [sessions, data, window])
@@ -39,9 +57,14 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
         .sort((a, b) => b.dueCents - a.dueCents || a.client.name.localeCompare(b.client.name, 'it')),
     [ledger, data.clients],
   )
+  // Adesso è l'ora della lettura: tra una lettura e l'altra la lista non cambia.
+  const upcoming = useMemo(
+    () => buildUpcoming(upcomingRange.sessions, data, upcomingRange.window.from),
+    [upcomingRange.sessions, upcomingRange.window, data],
+  )
 
   return (
-    <CalendarContext.Provider value={{ status, error, loadedAt, reload, ledger, summaries }}>{children}</CalendarContext.Provider>
+    <CalendarContext.Provider value={{ status, error, loadedAt, reload, ledger, summaries, upcoming }}>{children}</CalendarContext.Provider>
   )
 }
 

@@ -61,13 +61,13 @@ export function SignInScreen() {
             Ogni evento del calendario è una sessione: durata per tariffa oraria, con lo storico degli aumenti.
           </Item>
           <Item icon={<ListTree />} title="Pagamenti singoli o a blocchi">
-            Segni pagata una lezione o tutte quelle da una data in poi, e puoi sempre annullare.
+            Segni pagata una sessione o tutte quelle da una data in poi, e puoi sempre annullare.
           </Item>
           <Item icon={<ReportIcon />} title="Resoconti per periodo">
             Quanto hai lavorato in un mese o in un anno, per cliente, con il confronto e l’esportazione in CSV.
           </Item>
           <Item icon={<ReminderIcon />} title="Promemoria pronti">
-            Il riepilogo delle lezioni da saldare, da copiare o mandare su WhatsApp.
+            Il riepilogo delle sessioni da saldare, da copiare o mandare su WhatsApp.
           </Item>
         </ul>
       </section>

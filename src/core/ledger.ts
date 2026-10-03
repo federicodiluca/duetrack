@@ -169,6 +169,18 @@ export function buildLedger(
   }
 }
 
+/**
+ * Le sessioni in programma, riconosciute come quelle passate (clienti, alias, esclusioni,
+ * tariffe) ma tenute fuori dal registro: non sono ancora né fatte né dovute.
+ * Restano fuori le escluse; quelle senza cliente ci sono, da mostrare col loro titolo.
+ */
+export function buildUpcoming(calendarSessions: Session[], data: DuetrackData, now: Date): LedgerSession[] {
+  const future = calendarSessions.filter((s) => s.start >= now)
+  // Senza sessioni manuali né pagamenti: niente anomalie, e il registro vero resta l'unico.
+  const { sessions } = buildLedger(future, { ...data, manualSessions: [], payments: [] }, { from: now, to: now })
+  return sessions.filter((s) => !s.excluded)
+}
+
 export interface ClientSummary {
   client: Client
   /** Tutte le sessioni non pagate, dalla più vecchia. */

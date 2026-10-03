@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { recordPayment } from './actions'
-import { buildLedger, matchClient, oldestDue, rateAt, summarizeClient } from './ledger'
+import { buildLedger, buildUpcoming, matchClient, oldestDue, rateAt, summarizeClient } from './ledger'
 import { type Client, type DuetrackData, emptyData } from './model'
 import { type Session, eventToSession } from './session'
 
@@ -157,5 +157,30 @@ describe('summarizeClient', () => {
     const summary = summarizeClient(buildLedger(events, dataWith(davide), window), davide)
     expect(oldestDue(summary, 2).map((s) => s.id)).toEqual(['cal:e1', 'cal:e2'])
     expect(oldestDue(summary, 10)).toHaveLength(3)
+  })
+})
+
+describe('buildUpcoming', () => {
+  const now = new Date('2026-06-10T00:00:00Z')
+
+  it('recognizes clients and rates, but leaves out excluded and already started sessions', () => {
+    const data = { ...dataWith(davide), settings: { ...emptyData().settings, excludedTitles: ['riunione'] } }
+    const upcoming = buildUpcoming(
+      [session('a', 'Davide', '2026-06-09'), session('b', 'Davide', '2026-06-11'), session('c', 'Riunione', '2026-06-12'), session('d', 'Sconosciuto', '2026-06-13')],
+      data,
+      now,
+    )
+    expect(upcoming.map((s) => [s.id, s.clientId, s.amountCents])).toEqual([
+      ['cal:b', 'davide', 2000],
+      ['cal:d', undefined, undefined],
+    ])
+  })
+
+  it('ignores manual sessions and payments: they belong to the ledger', () => {
+    const data = {
+      ...dataWith(davide),
+      manualSessions: [{ id: 'm', clientId: 'davide', start: '2026-06-11T12:00:00Z', durationMinutes: 60 }],
+    }
+    expect(buildUpcoming([], data, now)).toEqual([])
   })
 })

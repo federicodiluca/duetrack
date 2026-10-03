@@ -82,6 +82,8 @@ export interface Settings {
   ignoredWords: string[]
   /** Titoli (chiavi normalizzate) che non sono mai sessioni, es. "riunione". */
   excludedTitles: string[]
+  /** Quante settimane di sessioni in programma mostrare, fuori dal conto; 0 le nasconde. */
+  upcomingWeeks: number
 }
 
 export interface DuetrackData {
@@ -98,7 +100,7 @@ export function emptyData(): DuetrackData {
   return {
     schemaVersion: SCHEMA_VERSION,
     currency: 'EUR',
-    settings: { ignoredWords: [], excludedTitles: [] },
+    settings: { ignoredWords: [], excludedTitles: [], upcomingWeeks: 2 },
     clients: [],
     manualSessions: [],
     overrides: {},
