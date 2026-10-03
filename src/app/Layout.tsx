@@ -19,8 +19,8 @@ const navLink = (isActive: boolean) =>
 const navIcon = 'hidden size-4 sm:block'
 
 export function Layout({ children }: { children: ReactNode }) {
-  const { status, loadedAt, reload, ledger } = useCalendar()
-  const unclassified = new Set(ledger.unclassified.map((s) => s.key)).size
+  const { status, loadedAt, reload, unclassified: unclassifiedSessions } = useCalendar()
+  const unclassified = new Set(unclassifiedSessions.map((s) => s.key)).size
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-3xl flex-col px-4">

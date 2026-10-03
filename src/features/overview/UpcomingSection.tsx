@@ -7,8 +7,8 @@ import { formatDuration } from '@/core/session'
 import { formatTime, pluralize } from '@/lib/format'
 import { upcomingDayLabel } from './upcoming'
 
-// Abbastanza per vedere i prossimi giorni senza spingere in fondo il resto della pagina.
-const SHOWN_AT_FIRST = 8
+// Sta sopra l'elenco dei clienti: abbastanza per i prossimi giorni, senza spingerlo troppo in basso.
+const SHOWN_AT_FIRST = 5
 
 /** Le sessioni in programma, per giorno: si vedono, ma non contano nel "da incassare". */
 export function UpcomingSection({ upcoming, clients, weeks }: { upcoming: LedgerSession[]; clients: Client[]; weeks: number }) {

@@ -33,5 +33,5 @@ cliente, se in calendario c'è un titolo che non verrà riconosciuto.
 - Una richiesta in più al calendario a ogni lettura, con gli stessi permessi di prima.
 - Una sessione in corso conta già come fatta (comportamento invariato) e non compare tra le
   prossime.
-- I titoli futuri non riconosciuti si vedono, ma per ora si assegnano solo quando la sessione è
-  passata.
+- I titoli futuri non riconosciuti finiscono anche in "Da classificare": un cliente nuovo si
+  crea prima della prima sessione, e l'assegnazione vale poi anche quando la sessione passa.

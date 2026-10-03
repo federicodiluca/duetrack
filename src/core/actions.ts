@@ -27,6 +27,12 @@ export function setPayFrom(data: DuetrackData, clientId: string, payFrom: IsoDat
   return updateClient(data, clientId, { payFrom })
 }
 
+/** Segna il cliente come difficile da incassare, o lo riporta tra quelli normali. */
+export function setDoubtful(data: DuetrackData, clientId: string, doubtful: boolean): DuetrackData {
+  // Senza il campo quando è falso: il file su Drive resta uguale a prima per chi non lo usa.
+  return updateClient(data, clientId, { doubtful: doubtful || undefined })
+}
+
 /** Segna pagate le sessioni indicate, tutte non pagate e dello stesso cliente. */
 export function recordPayment(
   data: DuetrackData,
@@ -125,6 +131,18 @@ export function addAlias(data: DuetrackData, clientId: string, alias: string): D
   if (owner) throw new ActionError(`"${alias}" è già il nome o un alias di ${owner.name}`)
   const client = data.clients.find((c) => c.id === clientId)!
   return updateClient(data, clientId, { aliases: [...client.aliases, alias.trim()] })
+}
+
+/**
+ * Crea un cliente partendo dal titolo di un evento da classificare. Se il nome scelto è
+ * diverso dal titolo, il titolo diventa un suo alias: l'evento da cui si è partiti, e i
+ * prossimi con lo stesso titolo, vanno a lui. Se il titolo è già di qualcun altro non lo tocca.
+ */
+export function addClientFromTitle(data: DuetrackData, client: Client, title: string): DuetrackData {
+  const next = addClient(data, client)
+  const key = titleKey(title)
+  const taken = next.clients.some((c) => [c.name, ...c.aliases].some((n) => titleKey(n) === key))
+  return key && !taken ? addAlias(next, client.id, title) : next
 }
 
 /** Segna un titolo come "mai una sessione", o lo toglie da quella lista. */

@@ -6,6 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { addAlias, excludeTitle } from '@/core/actions'
 import { formatDuration, groupByTitle, type SessionGroup } from '@/core/session'
 import type { LedgerSession } from '@/core/ledger'
+import { byName } from '@/core/model'
 import { formatDay, pluralize } from '@/lib/format'
 import { useCalendar } from '@/state/calendar'
 import { useData } from '@/state/data'
@@ -16,6 +17,8 @@ function GroupCard({ group, onCreate }: { group: SessionGroup<LedgerSession>; on
   const last = group.sessions[group.sessions.length - 1]
   const ambiguous = first.match?.kind === 'ambiguous' ? first.match.clientIds : []
   const names = ambiguous.map((id) => data.clients.find((c) => c.id === id)?.name).filter(Boolean)
+  const now = new Date()
+  const planned = group.sessions.filter((s) => s.start > now).length
 
   return (
     <li className="grid gap-3 rounded-lg border bg-card p-4">
@@ -24,6 +27,10 @@ function GroupCard({ group, onCreate }: { group: SessionGroup<LedgerSession>; on
         <span className="text-sm text-muted-foreground">
           {pluralize(group.sessions.length, 'evento', 'eventi')} · {formatDuration(group.totalMinutes)} ·{' '}
           {group.sessions.length === 1 ? formatDay(first.start) : `dal ${formatDay(first.start)} al ${formatDay(last.start)}`}
+          {planned > 0 &&
+            (planned === group.sessions.length
+              ? ' · in programma'
+              : ` · di cui ${planned} in programma`)}
         </span>
         {names.length > 0 && (
           <span className="text-sm text-destructive">Corrisponde a più clienti: {names.join(', ')}. Rendi diversi nomi e alias.</span>
@@ -39,7 +46,7 @@ function GroupCard({ group, onCreate }: { group: SessionGroup<LedgerSession>; on
               <SelectValue placeholder="È un cliente esistente…" />
             </SelectTrigger>
             <SelectContent>
-              {data.clients.map((c) => (
+              {[...data.clients].sort(byName).map((c) => (
                 <SelectItem key={c.id} value={c.id}>
                   {c.name}
                 </SelectItem>
@@ -56,17 +63,18 @@ function GroupCard({ group, onCreate }: { group: SessionGroup<LedgerSession>; on
 }
 
 export function UnclassifiedPage() {
-  const { ledger, status } = useCalendar()
+  const { unclassified, status } = useCalendar()
   const [creatingFor, setCreatingFor] = useState<string>()
-  const groups = groupByTitle(ledger.unclassified)
+  const groups = groupByTitle(unclassified)
 
   return (
     <div className="grid gap-6">
       <div className="grid gap-1">
         <h1 className="font-heading text-2xl font-semibold">Da classificare</h1>
         <p className="text-muted-foreground">
-          Eventi del calendario che non corrispondono a nessun cliente, raggruppati per titolo. Una scelta vale anche per i
-          prossimi eventi con lo stesso titolo.
+          Eventi del calendario che non corrispondono a nessun cliente, raggruppati per titolo, compresi quelli in programma:
+          un cliente nuovo lo crei prima ancora della prima sessione. Una scelta vale anche per i prossimi eventi con lo stesso
+          titolo.
         </p>
       </div>
 
@@ -87,7 +95,12 @@ export function UnclassifiedPage() {
       )}
 
       {creatingFor !== undefined && (
-        <ClientDialog open onOpenChange={(open) => !open && setCreatingFor(undefined)} suggestedName={creatingFor} />
+        <ClientDialog
+          open
+          onOpenChange={(open) => !open && setCreatingFor(undefined)}
+          suggestedName={creatingFor}
+          fromTitle={creatingFor}
+        />
       )}
     </div>
   )

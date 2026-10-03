@@ -1,5 +1,5 @@
 import { AlertTriangle, ChevronRight, Search } from 'lucide-react'
-import { useMemo, useState } from 'react'
+import { type ReactNode, useMemo, useState } from 'react'
 import { Link, useLocation } from 'wouter'
 import { ClientDialog } from '@/components/ClientDialog'
 import { ClientAddIcon } from '@/components/icons'
@@ -8,6 +8,7 @@ import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { INACTIVE_AFTER_DAYS, inactiveClients, lastSessionDates } from '@/core/activity'
+import type { ClientSummary } from '@/core/ledger'
 import { toIsoDate } from '@/core/model'
 import { formatMoney } from '@/core/money'
 import { formatDuration } from '@/core/session'
@@ -27,7 +28,7 @@ const SORTS: Record<Sort, string> = {
 
 export function OverviewPage() {
   const { data } = useData()
-  const { status, error, ledger, summaries, upcoming } = useCalendar()
+  const { status, error, ledger, summaries, upcoming, unclassified: unclassifiedSessions } = useCalendar()
   const [, navigate] = useLocation()
   const [creating, setCreating] = useState(false)
   const [query, setQuery] = useState('')
@@ -36,10 +37,17 @@ export function OverviewPage() {
   const lastDates = useMemo(() => lastSessionDates(ledger), [ledger])
   const inactive = useMemo(() => inactiveClients(data.clients, lastDates, toIsoDate(new Date())), [data.clients, lastDates])
 
-  const owing = summaries.filter((s) => s.due.length > 0)
+  // Gruppi chiusi all'inizio: in vista resta chi deve pagare, il resto a un tocco.
+  const [showSettled, setShowSettled] = useState(false)
+  const [showInactive, setShowInactive] = useState(false)
+
+  // I difficili da incassare stanno fuori dal totale: in alto si vede quello che arriverà davvero.
+  const owing = summaries.filter((s) => s.due.length > 0 && !s.client.doubtful)
+  const doubtful = summaries.filter((s) => s.due.length > 0 && s.client.doubtful)
   const totalCents = owing.reduce((sum, s) => sum + s.dueCents, 0)
-  const unclassified = ledger.unclassified.length
-  const unclassifiedTitles = new Set(ledger.unclassified.map((s) => s.key)).size
+  const doubtfulCents = doubtful.reduce((sum, s) => sum + s.dueCents, 0)
+  const unclassified = unclassifiedSessions.length
+  const unclassifiedTitles = new Set(unclassifiedSessions.map((s) => s.key)).size
 
   const visible = useMemo(() => {
     // Ricerca su nome e alias, senza badare a maiuscole e accenti.
@@ -56,6 +64,12 @@ export function OverviewPage() {
     return sorted
   }, [summaries, query, sort, lastDates])
 
+  const visibleOwing = visible.filter((s) => s.due.length > 0 && !s.client.doubtful)
+  const visibleDoubtful = visible.filter((s) => s.due.length > 0 && s.client.doubtful)
+  const visibleSettled = visible.filter((s) => s.due.length === 0)
+  // Chi cerca un cliente lo vuole vedere, anche se ha già pagato tutto.
+  const settledOpen = showSettled || query !== ''
+
   return (
     <div className="grid gap-8">
       <section className="grid gap-1">
@@ -66,6 +80,12 @@ export function OverviewPage() {
             ? 'Nessuno ti deve niente.'
             : `${pluralize(owing.length, 'cliente', 'clienti')} con sessioni da pagare`}
         </p>
+        {doubtful.length > 0 && (
+          <p className="text-sm text-muted-foreground">
+            In più {formatMoney(doubtfulCents, data.currency)} difficili da incassare (
+            {pluralize(doubtful.length, 'cliente', 'clienti')}).
+          </p>
+        )}
       </section>
 
       {status === 'error' && (
@@ -93,6 +113,10 @@ export function OverviewPage() {
           {pluralize(ledger.anomalies.length, 'sessione già pagata è stata', 'sessioni già pagate sono state')} cancellate o
           modificate in calendario dopo il pagamento. Le trovi segnalate nella pagina del cliente.
         </p>
+      )}
+
+      {data.settings.upcomingWeeks > 0 && summaries.length > 0 && (
+        <UpcomingSection upcoming={upcoming} clients={data.clients} weeks={data.settings.upcomingWeeks} />
       )}
 
       <section className="grid gap-3">
@@ -143,51 +167,55 @@ export function OverviewPage() {
 
         {visible.length > 0 ? (
           <div className="grid gap-4">
-            {[visible.filter((s) => s.due.length > 0), visible.filter((s) => s.due.length === 0)]
-              .filter((group) => group.length > 0)
-              .map((group) => (
-                <ul key={group[0].due.length > 0 ? 'owing' : 'settled'} className="divide-y rounded-lg border bg-card">
-                  {group.map((s) => (
-                    <li key={s.client.id}>
-                      <Link
-                        to={`/clienti/${s.client.id}`}
-                        className="flex items-center gap-3 p-3 transition-colors hover:bg-muted/50"
-                      >
-                        <div className="grid flex-1 gap-0.5">
-                          <span className="font-medium">{s.client.name}</span>
-                          <span className="text-sm text-muted-foreground">
-                            {s.due.length === 0
-                              ? 'Tutto pagato'
-                              : `${pluralize(s.due.length, 'sessione', 'sessioni')} · ${formatDuration(s.dueMinutes)}`}
-                            {s.client.payFrom && ` · da ${formatIsoDate(s.client.payFrom)}`}
-                          </span>
-                        </div>
-                        {s.missingRate > 0 && <Badge variant="destructive">Tariffa mancante</Badge>}
-                        <span className={`font-semibold tabular-nums ${s.dueCents === 0 ? 'text-muted-foreground' : ''}`}>
-                          {formatMoney(s.dueCents, data.currency)}
-                        </span>
-                        <ChevronRight className="size-4 text-muted-foreground" />
-                      </Link>
-                    </li>
+            {visibleOwing.length > 0 && (
+              <ul className="divide-y rounded-lg border bg-card">
+                {visibleOwing.map((s) => (
+                  <ClientRow key={s.client.id} summary={s} currency={data.currency} />
+                ))}
+              </ul>
+            )}
+
+            {visibleDoubtful.length > 0 && (
+              <div className="grid gap-2 rounded-lg border border-brand/60 bg-brand/10 p-2">
+                <div className="flex items-center gap-2 px-1 pt-1 text-sm">
+                  <AlertTriangle className="size-4 shrink-0" />
+                  <span className="font-medium">Difficili da incassare</span>
+                  <span className="text-muted-foreground">· fuori dal totale</span>
+                </div>
+                <ul className="divide-y rounded-md border bg-card">
+                  {visibleDoubtful.map((s) => (
+                    <ClientRow key={s.client.id} summary={s} currency={data.currency} />
                   ))}
                 </ul>
-              ))}
+              </div>
+            )}
+
+            {visibleSettled.length > 0 && (
+              <Disclosure
+                label={`Tutto pagato · ${pluralize(visibleSettled.length, 'cliente', 'clienti')}`}
+                open={settledOpen}
+                onToggle={() => setShowSettled((v) => !v)}
+              >
+                <ul className="divide-y rounded-lg border bg-card">
+                  {visibleSettled.map((s) => (
+                    <ClientRow key={s.client.id} summary={s} currency={data.currency} />
+                  ))}
+                </ul>
+              </Disclosure>
+            )}
           </div>
         ) : (
           query && <p className="text-sm text-muted-foreground">Nessun cliente corrisponde a “{query}”.</p>
         )}
       </section>
 
-      {data.settings.upcomingWeeks > 0 && summaries.length > 0 && (
-        <UpcomingSection upcoming={upcoming} clients={data.clients} weeks={data.settings.upcomingWeeks} />
-      )}
-
       {inactive.length > 0 && summaries.length > 0 && (
-        <section className="grid gap-3">
-          <div className="grid gap-1">
-            <h2 className="font-heading text-lg font-semibold">Da un po’ non li vedi</h2>
-            <p className="text-sm text-muted-foreground">Nessuna sessione da almeno {INACTIVE_AFTER_DAYS} giorni.</p>
-          </div>
+        <Disclosure
+          label={`Da un po’ non li vedi · ${pluralize(inactive.length, 'cliente', 'clienti')}`}
+          open={showInactive}
+          onToggle={() => setShowInactive((v) => !v)}
+        >
+          <p className="text-sm text-muted-foreground">Nessuna sessione da almeno {INACTIVE_AFTER_DAYS} giorni.</p>
           <ul className="divide-y rounded-lg border">
             {inactive.map(({ client, lastSession, days }) => (
               <li key={client.id}>
@@ -207,10 +235,51 @@ export function OverviewPage() {
               </li>
             ))}
           </ul>
-        </section>
+        </Disclosure>
       )}
 
       {creating && <ClientDialog open onOpenChange={setCreating} onSaved={(client) => navigate(`/clienti/${client.id}`)} />}
+    </div>
+  )
+}
+
+function ClientRow({ summary: s, currency }: { summary: ClientSummary; currency: string }) {
+  return (
+    <li>
+      <Link to={`/clienti/${s.client.id}`} className="flex items-center gap-3 p-3 transition-colors hover:bg-muted/50">
+        <div className="grid flex-1 gap-0.5">
+          <span className="font-medium">{s.client.name}</span>
+          <span className="text-sm text-muted-foreground">
+            {s.due.length === 0
+              ? 'Tutto pagato'
+              : `${pluralize(s.due.length, 'sessione', 'sessioni')} · ${formatDuration(s.dueMinutes)}`}
+            {s.client.payFrom && ` · da ${formatIsoDate(s.client.payFrom)}`}
+          </span>
+        </div>
+        {s.missingRate > 0 && <Badge variant="destructive">Tariffa mancante</Badge>}
+        <span className={`font-semibold tabular-nums ${s.dueCents === 0 ? 'text-muted-foreground' : ''}`}>
+          {formatMoney(s.dueCents, currency)}
+        </span>
+        <ChevronRight className="size-4 text-muted-foreground" />
+      </Link>
+    </li>
+  )
+}
+
+/** Un gruppo che si apre e chiude con la freccetta. */
+function Disclosure({ label, open, onToggle, children }: { label: string; open: boolean; onToggle: () => void; children: ReactNode }) {
+  return (
+    <div className="grid gap-2">
+      <button
+        type="button"
+        onClick={onToggle}
+        aria-expanded={open}
+        className="flex w-fit items-center gap-1 rounded-md px-1 py-0.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
+      >
+        <ChevronRight className={`size-4 transition-transform ${open ? 'rotate-90' : ''}`} />
+        {label}
+      </button>
+      {open && children}
     </div>
   )
 }

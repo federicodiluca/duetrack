@@ -1,4 +1,4 @@
-import { ArrowLeft, CalendarClock, EllipsisVertical, NotebookPen, X } from 'lucide-react'
+import { AlertTriangle, ArrowLeft, CalendarClock, EllipsisVertical, NotebookPen, X } from 'lucide-react'
 import { useMemo, useState } from 'react'
 import { Link, useLocation, useParams } from 'wouter'
 import { toast } from 'sonner'
@@ -22,12 +22,13 @@ import {
   excludeSession,
   recordPayment,
   removeManualSession,
+  setDoubtful,
   setOverride,
   setPayFrom,
   undoPayment,
 } from '@/core/actions'
 import { type LedgerSession, rateAt } from '@/core/ledger'
-import { type SessionId, toIsoDate } from '@/core/model'
+import { byName, type SessionId, toIsoDate } from '@/core/model'
 import { formatMoney } from '@/core/money'
 import { formatDuration } from '@/core/session'
 import { formatDay, formatIsoDate, formatTime, pluralize } from '@/lib/format'
@@ -75,7 +76,7 @@ export function ClientPage() {
 
   const { client, due, dueCents, dueMinutes, unpaidBeforePayFrom } = summary
   const currentRate = rateAt(client, toIsoDate(new Date()))
-  const otherClients = data.clients.filter((c) => c.id !== client.id)
+  const otherClients = data.clients.filter((c) => c.id !== client.id).sort(byName)
   const excluded = ledger.excluded.filter((s) => s.clientId === client.id)
   const anomalies = ledger.anomalies.filter((a) => payments.some((p) => p.id === a.paymentId))
   const next = upcoming.filter((s) => s.clientId === client.id)
@@ -143,6 +144,9 @@ export function ClientPage() {
               <DropdownMenuItem onSelect={() => setDialog({ kind: 'edit' })}>Modifica nome, alias e note</DropdownMenuItem>
               <DropdownMenuItem onSelect={() => setDialog({ kind: 'rates' })}>Tariffe</DropdownMenuItem>
               <DropdownMenuItem onSelect={() => setDialog({ kind: 'manual' })}>Aggiungi sessione a mano</DropdownMenuItem>
+              <DropdownMenuItem onSelect={() => apply((d) => setDoubtful(d, client.id, !client.doubtful))}>
+                {client.doubtful ? 'Togli da difficili da incassare' : 'Segna come difficile da incassare'}
+              </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem variant="destructive" onSelect={() => setDialog({ kind: 'delete' })}>
                 Elimina cliente
@@ -151,7 +155,17 @@ export function ClientPage() {
           </DropdownMenu>
         </div>
 
-        <div className="grid gap-1 rounded-lg border bg-card p-4">
+        <div className={`grid gap-1 rounded-lg border p-4 ${client.doubtful ? 'border-brand/60 bg-brand/10' : 'bg-card'}`}>
+          {client.doubtful && (
+            <p className="mb-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm">
+              <AlertTriangle className="size-4 shrink-0" />
+              <span className="font-medium">Difficile da incassare</span>
+              <span className="text-muted-foreground">· fuori dal totale</span>
+              <Button variant="link" size="xs" className="h-auto px-0" onClick={() => apply((d) => setDoubtful(d, client.id, false))}>
+                Togli
+              </Button>
+            </p>
+          )}
           <p className="text-sm font-medium text-muted-foreground">Da pagare</p>
           <p className="font-heading text-3xl font-semibold tabular-nums">{formatMoney(dueCents, data.currency)}</p>
           <p className="text-sm text-muted-foreground">
@@ -172,7 +186,7 @@ export function ClientPage() {
                 </span>{' '}
                 · {formatDuration(next[0].durationMinutes)}
                 {next.length > 1 &&
-                  `, poi altre ${next.length - 1} nelle prossime ${pluralize(data.settings.upcomingWeeks, 'settimana', 'settimane')}`}
+                  `, poi ${next.length === 2 ? 'un’altra' : `altre ${next.length - 1}`} nelle prossime ${pluralize(data.settings.upcomingWeeks, 'settimana', 'settimane')}`}
                 .
               </span>
             )}

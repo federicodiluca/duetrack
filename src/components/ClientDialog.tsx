@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
-import { addClient, updateClient } from '@/core/actions'
+import { addClient, addClientFromTitle, updateClient } from '@/core/actions'
 import { type Client, SINCE_ALWAYS } from '@/core/model'
 import { parseMoney } from '@/core/money'
 import { newId } from '@/lib/id'
@@ -17,6 +17,8 @@ interface ClientDialogProps {
   client?: Client
   /** Nome proposto per un nuovo cliente, es. il titolo di un evento da classificare. */
   suggestedName?: string
+  /** Titolo dell'evento da cui si crea il cliente: gli resta associato anche cambiando il nome. */
+  fromTitle?: string
   onSaved?: (client: Client) => void
 }
 
@@ -28,7 +30,7 @@ function splitAliases(text: string): string[] {
 }
 
 /** Crea o modifica nome e alias di un cliente; per un cliente nuovo chiede anche la tariffa. */
-export function ClientDialog({ open, onOpenChange, client, suggestedName, onSaved }: ClientDialogProps) {
+export function ClientDialog({ open, onOpenChange, client, suggestedName, fromTitle, onSaved }: ClientDialogProps) {
   const { apply } = useData()
   const [name, setName] = useState(client?.name ?? suggestedName ?? '')
   const [aliases, setAliases] = useState(client?.aliases.join(', ') ?? '')
@@ -59,7 +61,7 @@ export function ClientDialog({ open, onOpenChange, client, suggestedName, onSave
       rates: [{ from: SINCE_ALWAYS, centsPerHour: cents }],
       ...(note.trim() && { note: note.trim() }),
     }
-    if (apply((d) => addClient(d, created))) {
+    if (apply((d) => (fromTitle ? addClientFromTitle(d, created, fromTitle) : addClient(d, created)))) {
       onSaved?.(created)
       onOpenChange(false)
     }

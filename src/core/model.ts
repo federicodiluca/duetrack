@@ -30,6 +30,11 @@ export interface Client {
   payFrom?: IsoDate
   /** Appunti liberi: contatti, accordi, cose da ricordare. */
   note?: string
+  /**
+   * Difficile da incassare: non ha pagato e probabilmente non lo farà. Il suo dovuto resta
+   * (se paga si segna come sempre) ma sta fuori dal totale "da incassare".
+   */
+  doubtful?: boolean
 }
 
 /** Una sessione che non è in calendario, inserita a mano. */
@@ -123,6 +128,11 @@ export function normalizeData(value: unknown): DuetrackData {
   }
   const empty = emptyData()
   return { ...empty, ...stored, settings: { ...empty.settings, ...stored.settings } } as DuetrackData
+}
+
+/** Per gli elenchi di clienti da scegliere: in ordine alfabetico, all'italiana. */
+export function byName(a: Pick<Client, 'name'>, b: Pick<Client, 'name'>): number {
+  return a.name.localeCompare(b.name, 'it')
 }
 
 /** La data locale di un istante, come IsoDate. */

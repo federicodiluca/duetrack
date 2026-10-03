@@ -3,6 +3,7 @@ import {
   ActionError,
   addAlias,
   addClient,
+  addClientFromTitle,
   addManualSession,
   assignSession,
   deleteClient,
@@ -12,6 +13,7 @@ import {
   removeManualSession,
   removeRate,
   setAmount,
+  setDoubtful,
   setOverride,
   setRate,
   setSessionNote,
@@ -185,5 +187,33 @@ describe('notes', () => {
     expect(due(data).find((s) => s.id === 'man:m1')?.note).toBe('recupero')
     data = setSessionNote(data, 'man:m1', 'recupero di giugno')
     expect(due(data).find((s) => s.id === 'man:m1')?.note).toBe('recupero di giugno')
+  })
+})
+
+describe('setDoubtful', () => {
+  it('flags a client and clears the flag without leaving it in the saved file', () => {
+    const data = { ...emptyData(), clients: [davide] }
+    const flagged = setDoubtful(data, 'davide', true)
+    expect(flagged.clients[0].doubtful).toBe(true)
+    const cleared = setDoubtful(flagged, 'davide', false)
+    expect(JSON.parse(JSON.stringify(cleared)).clients[0]).not.toHaveProperty('doubtful')
+  })
+})
+
+describe('addClientFromTitle', () => {
+  const luca: Client = { id: 'luca', name: 'Luca', aliases: [], rates: [] }
+
+  it('keeps the starting title as an alias when the name was changed', () => {
+    const data = addClientFromTitle(emptyData(), luca, 'Luca Rossi')
+    expect(data.clients[0].aliases).toEqual(['Luca Rossi'])
+  })
+
+  it('adds no alias when the name already matches the title', () => {
+    expect(addClientFromTitle(emptyData(), luca, 'luca').clients[0].aliases).toEqual([])
+  })
+
+  it('leaves a title that already belongs to another client alone', () => {
+    const data = { ...emptyData(), clients: [davide] }
+    expect(addClientFromTitle(data, luca, 'Davide').clients[1].aliases).toEqual([])
   })
 })

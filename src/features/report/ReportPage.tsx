@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { buildLedger } from '@/core/ledger'
-import { type IsoDate, toIsoDate } from '@/core/model'
+import { byName, type IsoDate, toIsoDate } from '@/core/model'
 import { formatMoney } from '@/core/money'
 import { buildReport, effectiveRate, isSettled, monthlyTotals, percentChange, comparablePeriods, type ReportTotals } from '@/core/report'
 import { formatDuration } from '@/core/session'
@@ -182,7 +182,7 @@ export function ReportPage() {
           <fieldset className="grid gap-2">
             <legend className="mb-2 text-sm font-medium">Clienti</legend>
             <div className="flex flex-wrap gap-x-5 gap-y-2">
-              {data.clients.map((c) => (
+              {[...data.clients].sort(byName).map((c) => (
                 <label key={c.id} className="flex cursor-pointer items-center gap-2 text-sm">
                   <Checkbox checked={!hidden.has(c.id)} onCheckedChange={(on) => toggle(c.id, on === true)} />
                   {c.name}

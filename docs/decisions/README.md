@@ -16,3 +16,4 @@ Una decisione superata non si cancella: si scrive un nuovo ADR che la sostituisc
 | [0008](0008-interfaccia.md) | Interfaccia: shadcn/ui, wouter, indirizzi con # | Accettata |
 | [0009](0009-home-indicizzabile.md) | Home indicizzabile, scritta nell'HTML durante la build | Accettata |
 | [0010](0010-sessioni-in-programma.md) | Sessioni in programma lette a parte, fuori dal conto | Accettata |
+| [0011](0011-clienti-difficili-da-incassare.md) | Clienti difficili da incassare, fuori dal totale | Accettata |

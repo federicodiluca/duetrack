@@ -13,6 +13,11 @@ interface CalendarContextValue {
   summaries: ClientSummary[]
   /** Le sessioni in programma, dalla prossima: fuori dal registro e dai conti. */
   upcoming: LedgerSession[]
+  /**
+   * Gli eventi senza cliente da classificare: quelli passati e quelli in programma, così un
+   * cliente nuovo si crea prima ancora della prima sessione.
+   */
+  unclassified: LedgerSession[]
 }
 
 // Riletture al ritorno sull'app: non più di una ogni cinque minuti.
@@ -63,8 +68,10 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
     [upcomingRange.sessions, upcomingRange.window, data],
   )
 
+  const unclassified = useMemo(() => [...ledger.unclassified, ...upcoming.filter((s) => !s.clientId)], [ledger, upcoming])
+
   return (
-    <CalendarContext.Provider value={{ status, error, loadedAt, reload, ledger, summaries, upcoming }}>{children}</CalendarContext.Provider>
+    <CalendarContext.Provider value={{ status, error, loadedAt, reload, ledger, summaries, upcoming, unclassified }}>{children}</CalendarContext.Provider>
   )
 }
 
