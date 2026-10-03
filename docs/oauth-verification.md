@@ -11,11 +11,11 @@ all'indirizzo di contatto dello sviluppatore, a volte con richieste di chiarimen
 
 ## 1. Prima di inviare
 
-- [ ] **Dominio verificato in Google Search Console** con lo **stesso account Google** che
+- [x] **Dominio verificato in Google Search Console** con lo **stesso account Google** che
   possiede il progetto Cloud. Conviene una proprietà di tipo *Dominio* su
   `federicodiluca.com`: copre anche `duetrack.` e si verifica con un record TXT su Cloudflare
   (Search Console può aggiungerlo da sola collegandosi a Cloudflare).
-- [ ] **Branding** (Google Auth Platform → Branding):
+- [x] **Branding** (Google Auth Platform → Branding):
   - nome dell'app: `Duetrack`, uguale a quello della home page;
   - email di assistenza utenti: il tuo account o un gruppo Google che gestisci;
   - logo: [`docs/oauth/logo-120.png`](oauth/logo-120.png) (120×120). È facoltativo, ma con il
@@ -26,15 +26,15 @@ all'indirizzo di contatto dello sviluppatore, a volte con richieste di chiarimen
   - termini di servizio: facoltativi, si possono lasciare vuoti;
   - domini autorizzati: `federicodiluca.com`;
   - contatto sviluppatore: va bene anche `duetrack@federicodiluca.com`.
-- [ ] **Accesso ai dati** (Google Auth Platform → Accesso ai dati): aggiungere esattamente
+- [x] **Accesso ai dati** (Google Auth Platform → Accesso ai dati): aggiungere esattamente
   questi tre scope, né più né meno di quelli che l'app chiede:
   - `https://www.googleapis.com/auth/calendar.calendarlist.readonly`
   - `https://www.googleapis.com/auth/calendar.events.owned.readonly`
   - `https://www.googleapis.com/auth/drive.file`
-- [ ] **Pubblico** (Google Auth Platform → Pubblico): *Pubblica app* per passare da Testing a
+- [x] **Pubblico** (Google Auth Platform → Pubblico): *Pubblica app* per passare da Testing a
   In produzione. Da qui chiunque può accedere, ma vede l'avviso "app non verificata" e c'è un
   limite di 100 utenti finché la verifica non è completata.
-- [ ] **Video dimostrativo** caricato su YouTube (anche *non in elenco*), vedi sotto.
+- [x] **Video dimostrativo** caricato su YouTube (anche *non in elenco*), vedi sotto.
 
 ## 2. Motivazioni degli scope
 
