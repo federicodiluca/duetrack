@@ -29,7 +29,7 @@ export interface InactiveClient {
   days?: number
 }
 
-/** I clienti senza sessioni da almeno `afterDays` giorni, i più "persi" per primi. */
+/** I clienti senza sessioni da almeno `afterDays` giorni, dal più recente: chi non ha sessioni nel periodo letto va in fondo. */
 export function inactiveClients(
   clients: Client[],
   last: Map<string, IsoDate>,
@@ -42,5 +42,5 @@ export function inactiveClients(
       return { client, lastSession, days: lastSession ? daysBetween(lastSession, today) : undefined }
     })
     .filter((c) => c.days === undefined || c.days >= afterDays)
-    .sort((a, b) => (b.days ?? Infinity) - (a.days ?? Infinity))
+    .sort((a, b) => (a.days ?? Infinity) - (b.days ?? Infinity))
 }

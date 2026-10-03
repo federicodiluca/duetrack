@@ -17,11 +17,11 @@ describe('activity', () => {
     expect(Object.fromEntries(lastSessionDates(ledger))).toEqual({ luca: '2026-09-24', marta: '2026-08-20' })
   })
 
-  it('lists clients not seen for a while, never-seen ones first', () => {
+  it('lists clients not seen for a while, never-seen ones last', () => {
     const inactive = inactiveClients(clients, lastSessionDates(ledger), '2026-09-27', 21)
     expect(inactive.map((c) => [c.client.id, c.days])).toEqual([
-      ['giulia', undefined],
       ['marta', 38],
+      ['giulia', undefined],
     ])
   })
 
