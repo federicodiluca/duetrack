@@ -8,7 +8,7 @@ import { SignInScreen } from '@/app/SignInScreen'
 import { AuthProvider } from '@/state/auth'
 
 const URL = 'https://duetrack.federicodiluca.com/'
-const author = { '@type': 'Person', name: 'Federico Di Luca', url: 'https://federicodiluca.com/' }
+const author = { '@type': 'Person', '@id': 'https://federicodiluca.com/#person', name: 'Federico Di Luca', url: 'https://federicodiluca.com/' }
 
 export function renderHome() {
   return renderToString(
