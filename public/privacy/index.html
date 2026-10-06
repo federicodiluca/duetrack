@@ -94,7 +94,7 @@
         <img src="/favicon.svg" alt="" />
         <div>
           <h1>Informativa sulla privacy di Duetrack</h1>
-          <p class="muted" style="margin: 0.25rem 0 0">Ultimo aggiornamento: 28 settembre 2026 · <a href="/privacy/en/" hreflang="en" lang="en">English version</a></p>
+          <p class="muted" style="margin: 0.25rem 0 0">Ultimo aggiornamento: 6 ottobre 2026 · <a href="/privacy/en/" hreflang="en" lang="en">English version</a></p>
         </div>
       </header>
 
@@ -110,24 +110,35 @@
         <li>Nessuna pubblicità, nessuna analisi statistica, nessun cookie di tracciamento.</li>
       </ul>
 
-      <h2>Dati di Google a cui Duetrack accede</h2>
-      <p>Al momento dell’accesso Duetrack chiede a Google tre permessi, i più ristretti disponibili:</p>
+      <h2>Dati utente di Google a cui Duetrack accede</h2>
+      <p>
+        Duetrack accede soltanto ai dati Google elencati qui sotto, e solo dopo che hai dato il consenso nella schermata di
+        Google. Sono i permessi più ristretti disponibili.
+      </p>
       <ul>
         <li>
-          <strong>Elenco dei tuoi calendari</strong>, in sola lettura
-          (<code>calendar.calendarlist.readonly</code>), per farti scegliere quello in cui segni le sessioni.
+          <strong>Elenco dei tuoi calendari</strong>, in sola lettura (<code>calendar.calendarlist.readonly</code>).
+          <em>Dati letti:</em> nome e colore dei calendari. <em>Perché:</em> per farti scegliere il calendario in cui segni le
+          sessioni. <em>Dove restano:</em> solo in memoria, per mostrare la lista.
         </li>
         <li>
-          <strong>Eventi dei calendari di tua proprietà</strong>, in sola lettura
-          (<code>calendar.events.owned.readonly</code>): titolo, inizio e fine degli eventi del
-          calendario scelto, per riconoscere il cliente e calcolare durata e importo. Duetrack non modifica mai il calendario.
+          <strong>Eventi dei calendari di tua proprietà</strong>, in sola lettura (<code>calendar.events.owned.readonly</code>).
+          <em>Dati letti:</em> titolo, data e ora di inizio e di fine degli eventi del calendario che scegli. <em>Perché:</em>
+          per riconoscere il cliente (il titolo è il suo nome) e calcolare durata e importo in base alla tariffa. <em>Dove
+          restano:</em> gli eventi vengono letti nel tuo browser e tenuti in memoria finché l’app è aperta; non vengono
+          copiati né sul tuo Drive né su un server. Duetrack non modifica mai il calendario.
         </li>
         <li>
-          <strong>File creati da Duetrack sul tuo Google Drive</strong> (<code>drive.file</code>): un solo file, <code>duetrack-data.json</code>, con
-          clienti, tariffe e pagamenti, per tenere allineati i tuoi dispositivi. Duetrack non può vedere gli altri file del
-          tuo Drive.
+          <strong>File creati da Duetrack sul tuo Google Drive</strong> (<code>drive.file</code>).
+          <em>Dati letti e scritti:</em> un solo file, <code>duetrack-data.json</code>, con i tuoi clienti, le tariffe, i
+          pagamenti e le correzioni manuali. <em>Perché:</em> per tenere allineati i tuoi dispositivi senza un server.
+          Duetrack non può vedere né aprire gli altri file del tuo Drive.
         </li>
       </ul>
+      <p>
+        Duetrack non accede a email, contatti, foto o altri dati del tuo account Google. I dati che ricevi da Google
+        non vengono condivisi con nessuno: né venduti, né ceduti a terzi, né usati per pubblicità.
+      </p>
 
       <h2>Dove sono i dati</h2>
       <ul>
@@ -143,6 +154,47 @@
       <p>
         Le richieste vanno direttamente dal tuo browser a Google. L’app è pubblicata su GitHub Pages, che come ogni servizio
         di hosting può registrare dati tecnici delle visite (per esempio l’indirizzo IP) secondo la propria informativa.
+      </p>
+
+      <h2>Come proteggiamo i dati</h2>
+      <p>I dati sensibili, cioè i tuoi clienti, i loro importi e le sessioni di lavoro, sono protetti così:</p>
+      <ul>
+        <li>
+          <strong>Nessun server nostro.</strong> Duetrack non ha un backend né un database: i dati non passano mai da un
+          server gestito da chi ha realizzato l’app, quindi nessuno oltre a te può leggerli.
+        </li>
+        <li>
+          <strong>Cifratura in transito.</strong> Tutte le comunicazioni tra il tuo browser, l’app e le API di Google
+          avvengono su HTTPS (TLS).
+        </li>
+        <li>
+          <strong>Token di accesso solo in memoria.</strong> Il permesso rilasciato da Google non viene salvato su disco,
+          nel browser né su Drive, scade dopo circa un’ora e non esistono token di rinnovo. Chiudendo la scheda sparisce.
+        </li>
+        <li>
+          <strong>Permessi minimi.</strong> Il calendario è in sola lettura e, su Drive, l’app vede soltanto il file che ha
+          creato lei. Anche in caso di errore, Duetrack non potrebbe leggere altri tuoi file né modificare i tuoi eventi.
+        </li>
+        <li>
+          <strong>Protezione del tuo account.</strong> Il file su Drive è tuo e resta protetto dalle misure di sicurezza del
+          tuo account Google (per esempio la verifica in due passaggi). La copia nel browser è protetta dal profilo del
+          dispositivo che usi: ti consigliamo di bloccarlo con una password o un PIN.
+        </li>
+        <li>
+          <strong>Nessun accesso umano.</strong> Chi ha realizzato Duetrack non ha modo tecnico di vedere i tuoi dati e non
+          li legge. Il codice è pubblico su <a href="https://github.com/federicodiluca/duetrack">GitHub</a>, quindi chiunque
+          può verificarlo.
+        </li>
+        <li>
+          <strong>Nessuna condivisione.</strong> I dati non vengono venduti, ceduti, condivisi con terzi né usati per
+          pubblicità o per addestrare modelli di intelligenza artificiale.
+        </li>
+      </ul>
+
+      <h2>Per quanto tempo restano</h2>
+      <p>
+        Duetrack non conserva niente per conto suo. I dati restano sul tuo dispositivo e nel file sul tuo Drive finché non
+        li cancelli tu, con i passaggi qui sotto.
       </p>
 
       <h2>Uso dei dati ricevuti dalle API di Google</h2>

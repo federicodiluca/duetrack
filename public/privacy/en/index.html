@@ -95,7 +95,7 @@
         <div>
           <h1>Duetrack privacy policy</h1>
           <p class="muted" style="margin: 0.25rem 0 0">
-            Last updated: 28 September 2026 · <a href="/privacy/" hreflang="it" lang="it">Versione italiana</a>
+            Last updated: 6 October 2026 · <a href="/privacy/" hreflang="it" lang="it">Versione italiana</a>
           </p>
         </div>
       </header>
@@ -112,24 +112,35 @@
         <li>No advertising, no analytics, no tracking cookies.</li>
       </ul>
 
-      <h2>Google data Duetrack accesses</h2>
-      <p>When you sign in, Duetrack asks Google for three permissions, the narrowest available:</p>
+      <h2>Google user data Duetrack accesses</h2>
+      <p>
+        Duetrack accesses only the Google data listed below, and only after you give consent on Google’s consent screen.
+        These are the narrowest permissions available.
+      </p>
       <ul>
         <li>
-          <strong>The list of your calendars</strong>, read-only
-          (<code>calendar.calendarlist.readonly</code>), so you can pick the calendar where you record your sessions.
+          <strong>The list of your calendars</strong>, read-only (<code>calendar.calendarlist.readonly</code>).
+          <em>Data read:</em> the name and colour of your calendars. <em>Why:</em> so you can pick the calendar where you record
+          your sessions. <em>Where it stays:</em> in memory only, to show the list.
         </li>
         <li>
-          <strong>Events of the calendars you own</strong>, read-only (<code>calendar.events.owned.readonly</code>): title,
-          start and end of the events in the chosen calendar, to recognise the client and compute duration and amount.
-          Duetrack never modifies your calendar.
+          <strong>Events of the calendars you own</strong>, read-only (<code>calendar.events.owned.readonly</code>).
+          <em>Data read:</em> title, start and end date and time of the events in the calendar you choose. <em>Why:</em> to
+          recognise the client (the title is their name) and compute duration and amount from their rate. <em>Where it
+          stays:</em> events are read in your browser and kept in memory while the app is open; they are not copied to your
+          Drive or to any server. Duetrack never modifies your calendar.
         </li>
         <li>
-          <strong>Files created by Duetrack in your Google Drive</strong> (<code>drive.file</code>): a single file,
-          <code>duetrack-data.json</code>, holding your clients, rates and payments, to keep your devices in sync. Duetrack
-          cannot see any other file in your Drive.
+          <strong>Files created by Duetrack in your Google Drive</strong> (<code>drive.file</code>).
+          <em>Data read and written:</em> a single file, <code>duetrack-data.json</code>, holding your clients, rates, payments
+          and manual corrections. <em>Why:</em> to keep your devices in sync without a server. Duetrack cannot see or open any
+          other file in your Drive.
         </li>
       </ul>
+      <p>
+        Duetrack does not access your email, contacts, photos or any other data in your Google account. Data you receive from
+        Google is not shared with anyone: it is not sold, not passed to third parties and not used for advertising.
+      </p>
 
       <h2>Where the data is kept</h2>
       <ul>
@@ -143,6 +154,46 @@
       <p>
         Requests go straight from your browser to Google. The app is hosted on GitHub Pages, which, like any hosting service,
         may log technical data about visits (such as the IP address) under its own privacy policy.
+      </p>
+
+      <h2>How we protect the data</h2>
+      <p>Sensitive data, meaning your clients, the amounts they owe and your work sessions, is protected as follows:</p>
+      <ul>
+        <li>
+          <strong>No server of ours.</strong> Duetrack has no backend and no database: your data never passes through a
+          server run by the developer, so nobody but you can read it.
+        </li>
+        <li>
+          <strong>Encryption in transit.</strong> All communication between your browser, the app and Google’s APIs uses HTTPS
+          (TLS).
+        </li>
+        <li>
+          <strong>Access token in memory only.</strong> The permission issued by Google is never saved to disk, to the
+          browser or to Drive, it expires after about an hour and there are no refresh tokens. Closing the tab discards it.
+        </li>
+        <li>
+          <strong>Minimum permissions.</strong> The calendar is read-only and, on Drive, the app sees only the file it created.
+          Even in case of a bug, Duetrack could not read your other files or modify your events.
+        </li>
+        <li>
+          <strong>Your account’s protection.</strong> The Drive file is yours and stays protected by your Google account’s
+          security (for example two-step verification). The copy in your browser is protected by the profile of the device you
+          use: we recommend locking it with a password or PIN.
+        </li>
+        <li>
+          <strong>No human access.</strong> The developer has no technical way to see your data and does not read it. The
+          source code is public on <a href="https://github.com/federicodiluca/duetrack">GitHub</a>, so anyone can check this.
+        </li>
+        <li>
+          <strong>No sharing.</strong> Data is not sold, transferred, shared with third parties, used for advertising or used to
+          train artificial intelligence models.
+        </li>
+      </ul>
+
+      <h2>How long data is kept</h2>
+      <p>
+        Duetrack keeps nothing on its own. Your data stays on your device and in the file in your Drive until you delete it,
+        using the steps below.
       </p>
 
       <h2>Use of data received from Google APIs</h2>
