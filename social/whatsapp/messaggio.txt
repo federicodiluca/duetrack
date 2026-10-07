@@ -1,0 +1,8 @@
+Ciao! Se fai ripetizioni o lavori a ore, magari ti serve: ho fatto Duetrack.
+
+Segni le sessioni su Google Calendar (il nome del cliente come titolo dell'evento) e lui calcola quanto ti deve ognuno, da durata e tariffa. Segni i pagamenti e ti prepara anche il messaggio di promemoria da mandare.
+È gratis, gira nel browser e i dati restano sul tuo Drive.
+
+👉 https://duetrack.federicodiluca.com
+
+Una cosa: al primo accesso Google mostra «app non verificata». Premi Avanzate → Vai a Duetrack e prosegui.
