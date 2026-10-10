@@ -16,6 +16,7 @@ import { cn } from '@/lib/utils'
 import { useData } from '@/state/data'
 import { useCalendarRange } from '@/state/useCalendarRange'
 import { MonthlyChart } from './MonthlyChart'
+import { ReportTable } from './ReportTable'
 
 interface Period {
   label: string
@@ -264,38 +265,7 @@ export function ReportPage() {
         )}
 
         {report.rows.length > 0 ? (
-          <div className="overflow-x-auto rounded-lg border bg-card">
-            <table className="w-full text-sm">
-              <thead className="border-b text-left text-muted-foreground">
-                <tr>
-                  <th className="p-3 font-medium">Cliente</th>
-                  <th className="p-3 text-right font-medium">Sessioni</th>
-                  <th className="p-3 text-right font-medium">Ore</th>
-                  <th className="p-3 text-right font-medium">Svolto</th>
-                  <th className="hidden p-3 text-right font-medium sm:table-cell">€/h medi</th>
-                  <th className="p-3 text-right font-medium">Da incassare</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y tabular-nums">
-                {report.rows.map((row) => (
-                  <tr key={row.client.id}>
-                    <td className="p-3">
-                      <Link to={`/clienti/${row.client.id}`} className="font-medium hover:underline">
-                        {row.client.name}
-                      </Link>
-                    </td>
-                    <td className="p-3 text-right">{row.sessions}</td>
-                    <td className="p-3 text-right">{formatDuration(row.minutes)}</td>
-                    <td className="p-3 text-right font-medium">{money(row.cents)}</td>
-                    <td className="hidden p-3 text-right sm:table-cell">
-                      {effectiveRate(row) === undefined ? '—' : money(effectiveRate(row)!)}
-                    </td>
-                    <td className="p-3 text-right">{row.outstandingCents > 0 ? money(row.outstandingCents) : '—'}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <ReportTable rows={report.rows} currency={data.currency} />
         ) : (
           <div className="grid justify-items-center gap-2 rounded-lg border border-dashed p-8 text-center">
             <ReportIcon className="size-10 text-muted-foreground" />

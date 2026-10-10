@@ -34,6 +34,9 @@ Alternativa senza video da valutare solo in quel caso: il permesso `calendar.app
 
 ## Fatto
 
+- [x] Uso da telefono: tendine e menu come pannello dal basso (ADR 0008), pulsanti più
+  grandi al tocco, barra "Segna pagate" fissa in basso; ricerca, filtri e ordinamento per
+  clienti, sessioni da pagare (per mese, con nota, senza tariffa) e tabella del Resoconto
 - [x] Home indicizzabile (ADR 0009): scritta nell'HTML durante la build, FAQ, dati
   strutturati, sitemap e privacy indicizzabile
 - [x] Pulsante "Installa" nella home e nell'intestazione: finestra del browser dove c'è,

@@ -12,7 +12,7 @@ import { useCalendar } from '@/state/calendar'
 
 const navLink = (isActive: boolean) =>
   cn(
-    'inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-sm font-medium text-muted-foreground transition-colors hover:text-foreground',
+    'inline-flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-1.5 whitespace-nowrap text-sm font-medium text-muted-foreground transition-colors hover:text-foreground',
     isActive && 'bg-secondary text-foreground',
   )
 
@@ -24,14 +24,14 @@ export function Layout({ children }: { children: ReactNode }) {
 
   return (
     <div className="mx-auto flex min-h-dvh max-w-3xl flex-col px-4">
-      <header className="flex flex-wrap items-center justify-between gap-3 py-4">
+      <header className="flex items-center justify-between gap-3 py-4">
         <Link to="/" className="flex items-center gap-2.5 font-heading text-lg font-semibold">
           <img src="/favicon.svg" alt="" className="size-7" />
           Duetrack
         </Link>
         <div className="flex items-center gap-1">
           <SyncIndicator />
-          <InstallButton variant="ghost" size="sm" />
+          <InstallButton variant="ghost" size="sm" compact />
           <Button
             variant="ghost"
             size="sm"
@@ -40,12 +40,13 @@ export function Layout({ children }: { children: ReactNode }) {
             title={loadedAt ? `Calendario letto alle ${formatTime(loadedAt)}: tocca per rileggerlo` : 'Rileggi il calendario'}
           >
             <CalendarSyncIcon className={cn(status === 'loading' && 'animate-pulse')} />
-            {status === 'loading' ? 'Leggo…' : 'Aggiorna'}
+            <span className="max-sm:sr-only">{status === 'loading' ? 'Leggo…' : 'Aggiorna'}</span>
           </Button>
         </div>
       </header>
 
-      <nav className="-mx-2.5 flex flex-wrap gap-1 pb-4" aria-label="Sezioni">
+      {/* Sul telefono una riga sola che scorre di lato, invece di una voce sola a capo. */}
+      <nav className="-mx-4 flex gap-1 overflow-x-auto px-1.5 pb-4 [scrollbar-width:none] sm:-mx-2.5 sm:flex-wrap sm:px-0" aria-label="Sezioni">
         <Link to="/" className={navLink}>
           <CoinStackIcon className={navIcon} />
           Chi deve cosa

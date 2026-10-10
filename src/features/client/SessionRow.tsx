@@ -1,23 +1,14 @@
 import { CalendarClock, CircleSlash, EllipsisVertical, NotebookPen, PenLine, Trash2, UserRound } from 'lucide-react'
+import { ActionMenu } from '@/components/ActionMenu'
 import { CalendarAddIcon, CoinCheckIcon } from '@/components/icons'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuSub,
-  DropdownMenuSubContent,
-  DropdownMenuSubTrigger,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import type { LedgerSession } from '@/core/ledger'
 import type { Client } from '@/core/model'
 import { formatMoney } from '@/core/money'
 import { formatDuration } from '@/core/session'
-import { formatDay, formatTime } from '@/lib/format'
+import { formatDay, formatIsoDate, formatTime } from '@/lib/format'
 
 export interface SessionActions {
   onPay: () => void
@@ -67,51 +58,35 @@ export function SessionRow({ session, currency, selected, onSelectedChange, othe
           formatMoney(session.amountCents, currency)
         )}
       </span>
-      <DropdownMenu>
-        <DropdownMenuTrigger asChild>
+      <ActionMenu
+        title={`Sessione di ${formatDay(session.start)} alle ${formatTime(session.start)}`}
+        trigger={
           <Button variant="ghost" size="icon-sm" aria-label="Azioni sulla sessione">
             <EllipsisVertical />
           </Button>
-        </DropdownMenuTrigger>
-        <DropdownMenuContent align="end">
-          <DropdownMenuItem onSelect={actions.onPay} disabled={session.amountCents === undefined}>
-            <CoinCheckIcon /> Segna pagata solo questa
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={actions.onPayFrom}>
-            <CalendarClock /> Pagare da questa data
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={actions.onEditAmount}>
-            <PenLine /> Correggi importo
-          </DropdownMenuItem>
-          <DropdownMenuItem onSelect={actions.onEditNote}>
-            <NotebookPen /> {session.note ? 'Modifica nota' : 'Aggiungi nota'}
-          </DropdownMenuItem>
-          <DropdownMenuSeparator />
-          {otherClients.length > 0 && (
-            <DropdownMenuSub>
-              <DropdownMenuSubTrigger>
-                <UserRound /> Assegna a…
-              </DropdownMenuSubTrigger>
-              <DropdownMenuSubContent>
-                {otherClients.map((c) => (
-                  <DropdownMenuItem key={c.id} onSelect={() => actions.onAssign(c.id)}>
-                    {c.name}
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuSubContent>
-            </DropdownMenuSub>
-          )}
-          {actions.onDeleteManual ? (
-            <DropdownMenuItem variant="destructive" onSelect={actions.onDeleteManual}>
-              <Trash2 /> Elimina sessione
-            </DropdownMenuItem>
-          ) : (
-            <DropdownMenuItem variant="destructive" onSelect={actions.onExclude}>
-              <CircleSlash /> Non era una sessione
-            </DropdownMenuItem>
-          )}
-        </DropdownMenuContent>
-      </DropdownMenu>
+        }
+        entries={[
+          {
+            icon: <CoinCheckIcon />,
+            label: 'Segna pagata solo questa',
+            onSelect: actions.onPay,
+            disabled: session.amountCents === undefined,
+          },
+          { icon: <CalendarClock />, label: `Pagare dal ${formatIsoDate(session.date)}`, onSelect: actions.onPayFrom },
+          { icon: <PenLine />, label: 'Correggi importo', onSelect: actions.onEditAmount },
+          { icon: <NotebookPen />, label: session.note ? 'Modifica nota' : 'Aggiungi nota', onSelect: actions.onEditNote },
+          'separator',
+          {
+            icon: <UserRound />,
+            label: 'Assegna a…',
+            choices: otherClients.map((c) => ({ value: c.id, label: c.name })),
+            onChoose: actions.onAssign,
+          },
+          actions.onDeleteManual
+            ? { icon: <Trash2 />, label: 'Elimina sessione', onSelect: actions.onDeleteManual, destructive: true }
+            : { icon: <CircleSlash />, label: 'Non era una sessione', onSelect: actions.onExclude, destructive: true },
+        ]}
+      />
     </li>
   )
 }

@@ -18,7 +18,11 @@ function Step({ n, children }: { n: number; children: ReactNode }) {
  * Dove il browser lo permette apre la sua finestra di installazione; su iPhone, iPad e Safari
  * per Mac, che non la offrono, spiega il menu da usare. Se l'app è già installata non compare.
  */
-export function InstallButton({ label = 'Installa', ...props }: ComponentProps<typeof Button> & { label?: string }) {
+export function InstallButton({
+  label = 'Installa',
+  compact,
+  ...props
+}: ComponentProps<typeof Button> & { label?: string; /** Solo icona sul telefono. */ compact?: boolean }) {
   const mode = useInstallMode()
   const [help, setHelp] = useState(false)
 
@@ -28,7 +32,7 @@ export function InstallButton({ label = 'Installa', ...props }: ComponentProps<t
     <>
       <Button {...props} onClick={() => (mode === 'prompt' ? void promptInstall() : setHelp(true))}>
         <Download />
-        {label}
+        <span className={compact ? 'max-sm:sr-only' : undefined}>{label}</span>
       </Button>
       <Dialog open={help} onOpenChange={setHelp}>
         <DialogContent>

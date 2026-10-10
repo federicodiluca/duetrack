@@ -1,8 +1,8 @@
 import { useState } from 'react'
 import { ClientDialog } from '@/components/ClientDialog'
 import { ClientAddIcon, SortIcon } from '@/components/icons'
+import { Picker } from '@/components/Picker'
 import { Button } from '@/components/ui/button'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { addAlias, excludeTitle } from '@/core/actions'
 import { formatDuration, groupByTitle, type SessionGroup } from '@/core/session'
 import type { LedgerSession } from '@/core/ledger'
@@ -41,18 +41,13 @@ function GroupCard({ group, onCreate }: { group: SessionGroup<LedgerSession>; on
           <ClientAddIcon /> Nuovo cliente
         </Button>
         {data.clients.length > 0 && (
-          <Select onValueChange={(clientId) => apply((d) => addAlias(d, clientId, group.label))}>
-            <SelectTrigger size="sm" className="w-fit">
-              <SelectValue placeholder="È un cliente esistente…" />
-            </SelectTrigger>
-            <SelectContent>
-              {[...data.clients].sort(byName).map((c) => (
-                <SelectItem key={c.id} value={c.id}>
-                  {c.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <Picker
+            size="sm"
+            title={`“${group.label || '(senza titolo)'}” è…`}
+            placeholder="È un cliente esistente…"
+            onValueChange={(clientId) => apply((d) => addAlias(d, clientId, group.label))}
+            choices={[...data.clients].sort(byName).map((c) => ({ value: c.id, label: c.name }))}
+          />
         )}
         <Button size="sm" variant="ghost" onClick={() => apply((d) => excludeTitle(d, group.key))}>
           Non sono sessioni

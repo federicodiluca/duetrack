@@ -2,18 +2,14 @@ import { AlertTriangle, ArrowLeft, CalendarClock, EllipsisVertical, NotebookPen,
 import { useMemo, useState } from 'react'
 import { Link, useLocation, useParams } from 'wouter'
 import { toast } from 'sonner'
+import { ActionMenu } from '@/components/ActionMenu'
 import { ClientDialog } from '@/components/ClientDialog'
 import { ConfirmDialog } from '@/components/ConfirmDialog'
+import { FilterChips } from '@/components/FilterChips'
 import { CalendarAddIcon, CoinCheckIcon, CoinStackIcon, ReminderIcon } from '@/components/icons'
+import { Picker } from '@/components/Picker'
 import { Button } from '@/components/ui/button'
 import { Checkbox } from '@/components/ui/checkbox'
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import {
@@ -31,12 +27,16 @@ import { type LedgerSession, rateAt } from '@/core/ledger'
 import { byName, type SessionId, toIsoDate } from '@/core/model'
 import { formatMoney } from '@/core/money'
 import { formatDuration } from '@/core/session'
-import { formatDay, formatIsoDate, formatTime, pluralize } from '@/lib/format'
+import { formatDay, formatIsoDate, formatMonth, formatTime, pluralize } from '@/lib/format'
 import { newId } from '@/lib/id'
 import { useCalendar } from '@/state/calendar'
 import { useData } from '@/state/data'
 import { AmountDialog, ManualSessionDialog, NoteDialog, PayOldestDialog, RatesDialog, ReminderDialog } from './dialogs'
 import { SessionRow } from './SessionRow'
+import { ALL_SESSIONS, filterSessions, type SessionFilter, type SessionKind, type SessionOrder, sessionMonths, sessionsOfKind } from './sessionFilter'
+
+/** Sopra questo numero di sessioni da pagare compaiono filtri e ordine. */
+const FILTER_FROM = 3
 
 type OpenDialog =
   | { kind: 'edit' }
@@ -59,6 +59,7 @@ export function ClientPage() {
   const { ledger, summaries, upcoming } = useCalendar()
   const [selected, setSelected] = useState<Set<SessionId>>(new Set())
   const [dialog, setDialog] = useState<OpenDialog>()
+  const [filter, setFilter] = useState<SessionFilter>(ALL_SESSIONS)
 
   const summary = summaries.find((s) => s.client.id === clientId)
   const payments = useMemo(
@@ -80,8 +81,24 @@ export function ClientPage() {
   const excluded = ledger.excluded.filter((s) => s.clientId === client.id)
   const anomalies = ledger.anomalies.filter((a) => payments.some((p) => p.id === a.paymentId))
   const next = upcoming.filter((s) => s.clientId === client.id)
-  const selectedSessions = due.filter((s) => selected.has(s.id))
-  const allSelected = due.length > 0 && selectedSessions.length === due.length
+  // Un mese o un tipo rimasto senza sessioni (pagate, spostate) non filtra più niente.
+  const months = sessionMonths(due)
+  const kindCount = (kind: SessionKind) => sessionsOfKind(due, kind).length
+  const active: SessionFilter = {
+    ...filter,
+    month: months.some((m) => m.month === filter.month) ? filter.month : 'all',
+    kind: kindCount(filter.kind) > 0 ? filter.kind : 'all',
+  }
+  const shown = filterSessions(due, active)
+  const filtered = shown.length < due.length
+  const kindChips = [
+    { value: 'all' as const, label: 'Tutte' },
+    kindCount('noted') > 0 && { value: 'noted' as const, label: 'Con nota', count: kindCount('noted') },
+    kindCount('no-rate') > 0 && { value: 'no-rate' as const, label: 'Senza tariffa', count: kindCount('no-rate') },
+  ].filter((c) => c !== false)
+  // Si paga solo quello che si vede: una sessione selezionata e poi nascosta da un filtro non conta.
+  const selectedSessions = shown.filter((s) => selected.has(s.id))
+  const allSelected = shown.length > 0 && selectedSessions.length === shown.length
   const close = () => setDialog(undefined)
 
   function pay(sessions: LedgerSession[]) {
@@ -112,7 +129,7 @@ export function ClientPage() {
   }
 
   return (
-    <div className="grid gap-8">
+    <div className={`grid gap-8 ${selectedSessions.length > 0 ? 'max-sm:pb-20' : ''}`}>
       <div className="grid gap-4">
         <Link to="/" className="flex w-fit items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
           <ArrowLeft className="size-4" /> Tutti i clienti
@@ -134,25 +151,25 @@ export function ClientPage() {
               </p>
             )}
           </div>
-          <DropdownMenu>
-            <DropdownMenuTrigger asChild>
+          <ActionMenu
+            title={client.name}
+            trigger={
               <Button variant="outline" size="icon" aria-label="Azioni sul cliente">
                 <EllipsisVertical />
               </Button>
-            </DropdownMenuTrigger>
-            <DropdownMenuContent align="end">
-              <DropdownMenuItem onSelect={() => setDialog({ kind: 'edit' })}>Modifica nome, alias e note</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setDialog({ kind: 'rates' })}>Tariffe</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => setDialog({ kind: 'manual' })}>Aggiungi sessione a mano</DropdownMenuItem>
-              <DropdownMenuItem onSelect={() => apply((d) => setDoubtful(d, client.id, !client.doubtful))}>
-                {client.doubtful ? 'Togli da difficili da incassare' : 'Segna come difficile da incassare'}
-              </DropdownMenuItem>
-              <DropdownMenuSeparator />
-              <DropdownMenuItem variant="destructive" onSelect={() => setDialog({ kind: 'delete' })}>
-                Elimina cliente
-              </DropdownMenuItem>
-            </DropdownMenuContent>
-          </DropdownMenu>
+            }
+            entries={[
+              { label: 'Modifica nome, alias e note', onSelect: () => setDialog({ kind: 'edit' }) },
+              { label: 'Tariffe', onSelect: () => setDialog({ kind: 'rates' }) },
+              { label: 'Aggiungi sessione a mano', onSelect: () => setDialog({ kind: 'manual' }) },
+              {
+                label: client.doubtful ? 'Togli da difficili da incassare' : 'Segna come difficile da incassare',
+                onSelect: () => apply((d) => setDoubtful(d, client.id, !client.doubtful)),
+              },
+              'separator',
+              { label: 'Elimina cliente', onSelect: () => setDialog({ kind: 'delete' }), destructive: true },
+            ]}
+          />
         </div>
 
         <div className={`grid gap-1 rounded-lg border p-4 ${client.doubtful ? 'border-brand/60 bg-brand/10' : 'bg-card'}`}>
@@ -227,9 +244,10 @@ export function ClientPage() {
       </section>
 
       <section className="grid gap-3">
-        <div className="flex flex-wrap items-center gap-2">
+        {/* Sul telefono due colonne ordinate invece di pulsanti che vanno a capo a caso. */}
+        <div className="grid grid-cols-2 gap-2 sm:flex sm:flex-wrap sm:items-center">
           <Button
-            className="bg-brand text-brand-foreground hover:bg-brand/85"
+            className="col-span-2 bg-brand text-brand-foreground hover:bg-brand/85"
             disabled={selectedSessions.length === 0}
             onClick={() => setDialog({ kind: 'confirm-pay', sessions: selectedSessions })}
           >
@@ -244,10 +262,38 @@ export function ClientPage() {
           <Button variant="outline" disabled={due.length === 0} onClick={() => setDialog({ kind: 'reminder' })}>
             <ReminderIcon /> Promemoria
           </Button>
-          <Button variant="ghost" onClick={() => setDialog({ kind: 'manual' })}>
+          <Button variant="ghost" className="col-span-2 sm:col-auto" onClick={() => setDialog({ kind: 'manual' })}>
             <CalendarAddIcon /> Sessione a mano
           </Button>
         </div>
+
+        {due.length > FILTER_FROM && (
+          <div className="grid gap-3">
+            <div className="flex flex-wrap gap-2">
+              <Picker
+                title="Mese"
+                value={active.month}
+                onValueChange={(month) => setFilter((f) => ({ ...f, month }))}
+                choices={[
+                  { value: 'all', label: `Tutti i mesi · ${due.length}` },
+                  ...months.map((m) => ({ value: m.month, label: `${formatMonth(m.month)} · ${m.count}` })),
+                ]}
+              />
+              <Picker
+                title="Ordine"
+                value={active.order}
+                onValueChange={(order) => setFilter((f) => ({ ...f, order: order as SessionOrder }))}
+                choices={[
+                  { value: 'oldest', label: 'Dalla più vecchia' },
+                  { value: 'newest', label: 'Dalla più recente' },
+                ]}
+              />
+            </div>
+            {kindChips.length > 1 && (
+              <FilterChips label="Mostra" chips={kindChips} value={active.kind} onChange={(kind) => setFilter((f) => ({ ...f, kind }))} />
+            )}
+          </div>
+        )}
 
         {due.length === 0 ? (
           <div className="grid justify-items-center gap-2 rounded-lg border border-dashed p-8 text-center">
@@ -260,15 +306,29 @@ export function ClientPage() {
             <div className="flex items-center gap-3 border-b px-3 py-2 text-sm text-muted-foreground">
               <Checkbox
                 id="select-all"
+                disabled={shown.length === 0}
                 checked={allSelected ? true : selectedSessions.length > 0 ? 'indeterminate' : false}
-                onCheckedChange={(checked) => setSelected(checked === true ? new Set(due.map((s) => s.id)) : new Set())}
+                onCheckedChange={(checked) => setSelected(checked === true ? new Set(shown.map((s) => s.id)) : new Set())}
               />
-              <label htmlFor="select-all" className="cursor-pointer">
-                Seleziona tutte
+              <label htmlFor="select-all" className="flex-1 cursor-pointer">
+                {filtered ? `Seleziona le ${shown.length} mostrate` : 'Seleziona tutte'}
               </label>
+              {filtered && (
+                <span className="tabular-nums">
+                  {shown.length} di {due.length} · {formatMoney(sum(shown), data.currency)}
+                </span>
+              )}
             </div>
+            {shown.length === 0 && (
+              <p className="flex flex-wrap items-center gap-x-2 p-3 text-sm text-muted-foreground">
+                Nessuna sessione con questi filtri.
+                <Button variant="link" size="xs" className="h-auto px-0" onClick={() => setFilter(ALL_SESSIONS)}>
+                  Mostra tutte
+                </Button>
+              </p>
+            )}
             <ul className="divide-y">
-              {due.map((session) => (
+              {shown.map((session) => (
                 <SessionRow
                   key={session.id}
                   session={session}
@@ -358,6 +418,22 @@ export function ClientPage() {
             ))}
           </ul>
         </section>
+      )}
+
+      {/* Sul telefono, dopo aver spuntato sessioni in fondo alla lista, il pulsante resta a portata di pollice. */}
+      {selectedSessions.length > 0 && (
+        <div className="fixed inset-x-0 bottom-0 z-40 flex gap-2 border-t bg-background/95 px-4 pt-3 pb-[calc(0.75rem+env(safe-area-inset-bottom))] backdrop-blur sm:hidden">
+          <Button variant="outline" size="icon" aria-label="Deseleziona tutte" onClick={() => setSelected(new Set())}>
+            <X />
+          </Button>
+          <Button
+            className="flex-1 bg-brand text-brand-foreground hover:bg-brand/85"
+            onClick={() => setDialog({ kind: 'confirm-pay', sessions: selectedSessions })}
+          >
+            <CoinCheckIcon />
+            Segna pagate {selectedSessions.length} · {formatMoney(sum(selectedSessions), data.currency)}
+          </Button>
+        </div>
       )}
 
       {dialog?.kind === 'edit' && <ClientDialog open onOpenChange={close} client={client} />}

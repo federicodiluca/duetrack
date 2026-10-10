@@ -31,7 +31,8 @@ export function SyncIndicator() {
   return (
     <Button variant="ghost" size="sm" onClick={syncNow} title={title} aria-label={title} className={alert ? 'text-destructive' : undefined}>
       <Icon className={sync.state === 'syncing' ? 'animate-pulse' : undefined} />
-      {label}
+      {/* Sul telefono basta l'icona, tranne quando c'è qualcosa da fare. */}
+      <span className={alert ? undefined : 'max-sm:sr-only'}>{label}</span>
     </Button>
   )
 }

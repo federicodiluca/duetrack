@@ -1,11 +1,11 @@
 import { Copy, Share2, Trash2 } from 'lucide-react'
 import { useState } from 'react'
 import { toast } from 'sonner'
+import { Picker } from '@/components/Picker'
 import { Button } from '@/components/ui/button'
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { addManualSession, removeRate, setAmount, setRate, setSessionNote } from '@/core/actions'
 import { Textarea } from '@/components/ui/textarea'
 import type { ClientSummary, LedgerSession } from '@/core/ledger'
@@ -218,18 +218,15 @@ export function ManualSessionDialog({ client, onOpenChange }: DialogProps & { cl
             </div>
             <div className="grid gap-2">
               <Label htmlFor="manual-duration">Durata</Label>
-              <Select value={duration} onValueChange={setDuration}>
-                <SelectTrigger id="manual-duration" className="w-28">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {DURATIONS.map((m) => (
-                    <SelectItem key={m} value={String(m)}>
-                      {formatDuration(m)}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Picker
+                id="manual-duration"
+                labelled
+                title="Durata"
+                value={duration}
+                onValueChange={setDuration}
+                choices={DURATIONS.map((m) => ({ value: String(m), label: formatDuration(m) }))}
+                className="w-28"
+              />
             </div>
           </div>
           <div className="grid gap-2">

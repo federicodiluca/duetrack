@@ -28,3 +28,11 @@ export function formatIsoDate(iso: IsoDate): string {
 export function pluralize(count: number, one: string, many: string): string {
   return `${count} ${count === 1 ? one : many}`
 }
+
+const monthFormat = new Intl.DateTimeFormat('it-IT', { month: 'long', year: 'numeric' })
+
+/** "ottobre 2026", da un mese nella forma "2026-10". */
+export function formatMonth(month: string): string {
+  const [y, m] = month.split('-').map(Number)
+  return monthFormat.format(new Date(y, m - 1, 1))
+}

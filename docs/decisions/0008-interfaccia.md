@@ -37,3 +37,19 @@ e resta in cache come PWA.
   una volta sola.
 - Gli aggiornamenti dei componenti shadcn non arrivano da soli: si rigenerano con la CLI
   quando serve, confrontando le modifiche.
+
+## Aggiornamento (10/10/2026): tendine e menu sul telefono
+
+Le tendine e i menu di Radix sono pensati per il mouse: voci alte 24 px, e il sottomenu
+"Assegna a…" che sul telefono si apriva di lato, fuori schermo o sotto il dito.
+
+- **Pannello dal basso sotto i 640 px.** `Picker` (tendine) e `ActionMenu` (menu ⋮) sul
+  computer restano Select e DropdownMenu di Radix; sul telefono aprono uno `Sheet` che sale
+  dal basso, con voci alte 48 px e la ricerca oltre 8 voci. Il sottomenu diventa una seconda
+  schermata del pannello, con la freccia per tornare indietro. Lo `Sheet` è il Dialog di
+  Radix con un altro stile: niente dipendenze nuove, e focus, Esc e lettori di schermo
+  già gestiti. Scartati il `<select>` nativo (niente ricerca, e non risolve i menu) e il
+  solo ingrandimento (sottomenu e liste lunghe restavano scomodi).
+- **Misure al tocco con `pointer-coarse`.** Su uno schermo touch pulsanti, campi e caselle
+  crescono (40 px invece di 32); con il mouse restano compatti. Il criterio è diverso dal
+  pannello di proposito: un tablet ha spazio per una tendina, ma la tocca col dito.

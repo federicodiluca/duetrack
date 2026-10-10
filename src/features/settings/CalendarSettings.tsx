@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
+import { Picker } from '@/components/Picker'
 import { updateSettings } from '@/core/actions'
 import { toIsoDate } from '@/core/model'
 import { DEMO, demoCalendars } from '@/demo'
@@ -59,20 +59,27 @@ export function CalendarSettings({ submitLabel, onSaved }: { submitLabel: string
     <form onSubmit={submit} className="grid gap-5">
       <div className="grid gap-2">
         <Label htmlFor="calendar">Calendario delle sessioni</Label>
-        <Select value={calendarId} onValueChange={setCalendarId} disabled={!calendars}>
-          <SelectTrigger id="calendar" className="w-full">
-            <SelectValue placeholder={calendars ? 'Scegli un calendario' : 'Carico i calendari…'} />
-          </SelectTrigger>
-          <SelectContent>
-            {calendars?.map((c) => (
-              <SelectItem key={c.id} value={c.id}>
-                <span className="size-2.5 rounded-full" style={{ background: c.backgroundColor }} />
+        <Picker
+          id="calendar"
+          labelled
+          title="Calendario delle sessioni"
+          value={calendarId}
+          onValueChange={setCalendarId}
+          disabled={!calendars}
+          placeholder={calendars ? 'Scegli un calendario' : 'Carico i calendari…'}
+          choices={(calendars ?? []).map((c) => ({
+            value: c.id,
+            text: c.summary,
+            label: (
+              <>
+                <span className="size-2.5 shrink-0 rounded-full" style={{ background: c.backgroundColor }} />
                 {c.summary}
                 {c.primary && ' (principale)'}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+              </>
+            ),
+          }))}
+          className="w-full"
+        />
         {loadError && <p className="text-sm text-destructive">Impossibile leggere i calendari: {loadError}</p>}
         <p className="text-sm text-muted-foreground">Ogni evento con orario di questo calendario è una sessione.</p>
       </div>
@@ -96,18 +103,17 @@ export function CalendarSettings({ submitLabel, onSaved }: { submitLabel: string
 
       <div className="grid gap-2">
         <Label htmlFor="upcoming-weeks">Sessioni in programma</Label>
-        <Select value={upcomingWeeks} onValueChange={setUpcomingWeeks}>
-          <SelectTrigger id="upcoming-weeks" className="w-fit">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {UPCOMING_CHOICES.map((weeks) => (
-              <SelectItem key={weeks} value={String(weeks)}>
-                {weeks === 0 ? 'Non mostrarle' : `Prossime ${pluralize(weeks, 'settimana', 'settimane')}`}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Picker
+          id="upcoming-weeks"
+          labelled
+          title="Sessioni in programma"
+          value={upcomingWeeks}
+          onValueChange={setUpcomingWeeks}
+          choices={UPCOMING_CHOICES.map((weeks) => ({
+            value: String(weeks),
+            label: weeks === 0 ? 'Non mostrarle' : `Prossime ${pluralize(weeks, 'settimana', 'settimane')}`,
+          }))}
+        />
         <p className="text-sm text-muted-foreground">
           Le sessioni future si vedono a parte e non entrano nel conto finché non sono passate.
         </p>
@@ -115,18 +121,17 @@ export function CalendarSettings({ submitLabel, onSaved }: { submitLabel: string
 
       <div className="grid gap-2">
         <Label htmlFor="inactive-after-days">Clienti che non vedi da un po’</Label>
-        <Select value={inactiveAfterDays} onValueChange={setInactiveAfterDays}>
-          <SelectTrigger id="inactive-after-days" className="w-fit">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            {INACTIVE_CHOICES.map((days) => (
-              <SelectItem key={days} value={String(days)}>
-                {days === 0 ? 'Non segnalarli' : `Dopo ${days} giorni senza sessioni`}
-              </SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
+        <Picker
+          id="inactive-after-days"
+          labelled
+          title="Clienti che non vedi da un po’"
+          value={inactiveAfterDays}
+          onValueChange={setInactiveAfterDays}
+          choices={INACTIVE_CHOICES.map((days) => ({
+            value: String(days),
+            label: days === 0 ? 'Non segnalarli' : `Dopo ${days} giorni senza sessioni`,
+          }))}
+        />
         <p className="text-sm text-muted-foreground">
           Nella panoramica, per accorgerti di chi si è perso per strada.
         </p>
