@@ -105,7 +105,8 @@ export function ClientPage() {
     const id = newId()
     const done = apply((d) => recordPayment(d, { id, clientId: client.id, date: toIsoDate(new Date()) }, sessions))
     if (!done) return
-    setSelected(new Set())
+    // Solo le pagate escono dalla selezione: un tocco su una riga non fa perdere le altre spunte.
+    setSelected((current) => new Set([...current].filter((id) => !sessions.some((s) => s.id === id))))
     close()
     toast.success(`${pluralize(sessions.length, 'sessione pagata', 'sessioni pagate')} · ${formatMoney(sum(sessions), data.currency)}`, {
       action: { label: 'Annulla', onClick: () => apply((d) => undoPayment(d, id)) },

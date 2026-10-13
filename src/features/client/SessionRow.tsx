@@ -58,6 +58,18 @@ export function SessionRow({ session, currency, selected, onSelectedChange, othe
           formatMoney(session.amountCents, currency)
         )}
       </span>
+      {/* Un tocco e basta: niente conferma, l'avviso che segue ha "Annulla" per gli errori. */}
+      <Button
+        variant="ghost"
+        size="icon-sm"
+        className="text-paid hover:text-paid"
+        aria-label={`Segna pagata la sessione di ${formatDay(session.start)}`}
+        title="Segna pagata"
+        disabled={session.amountCents === undefined}
+        onClick={actions.onPay}
+      >
+        <CoinCheckIcon />
+      </Button>
       <ActionMenu
         title={`Sessione di ${formatDay(session.start)} alle ${formatTime(session.start)}`}
         trigger={
@@ -66,12 +78,6 @@ export function SessionRow({ session, currency, selected, onSelectedChange, othe
           </Button>
         }
         entries={[
-          {
-            icon: <CoinCheckIcon />,
-            label: 'Segna pagata solo questa',
-            onSelect: actions.onPay,
-            disabled: session.amountCents === undefined,
-          },
           { icon: <CalendarClock />, label: `Pagare dal ${formatIsoDate(session.date)}`, onSelect: actions.onPayFrom },
           { icon: <PenLine />, label: 'Correggi importo', onSelect: actions.onEditAmount },
           { icon: <NotebookPen />, label: session.note ? 'Modifica nota' : 'Aggiungi nota', onSelect: actions.onEditNote },
