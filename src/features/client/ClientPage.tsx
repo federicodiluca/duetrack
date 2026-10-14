@@ -24,14 +24,14 @@ import {
   undoPayment,
 } from '@/core/actions'
 import { type LedgerSession, rateAt } from '@/core/ledger'
-import { byName, type SessionId, toIsoDate } from '@/core/model'
+import { byName, creditBalance, receivedCents, type SessionId, toIsoDate } from '@/core/model'
 import { formatMoney } from '@/core/money'
 import { formatDuration } from '@/core/session'
 import { formatDay, formatIsoDate, formatMonth, formatTime, pluralize } from '@/lib/format'
 import { newId } from '@/lib/id'
 import { useCalendar } from '@/state/calendar'
 import { useData } from '@/state/data'
-import { AmountDialog, ManualSessionDialog, NoteDialog, PayOldestDialog, RatesDialog, ReminderDialog } from './dialogs'
+import { AmountDialog, ManualSessionDialog, NoteDialog, PayDialog, PayOldestDialog, RatesDialog, ReminderDialog } from './dialogs'
 import { SessionRow } from './SessionRow'
 import { ALL_SESSIONS, filterSessions, type SessionFilter, type SessionKind, type SessionOrder, sessionMonths, sessionsOfKind } from './sessionFilter'
 
@@ -48,6 +48,7 @@ type OpenDialog =
   | { kind: 'amount'; session: LedgerSession }
   | { kind: 'note'; session: LedgerSession }
   | { kind: 'confirm-pay'; sessions: LedgerSession[] }
+  | { kind: 'advance' }
   | { kind: 'undo'; paymentId: string }
 
 const sum = (sessions: LedgerSession[]) => sessions.reduce((total, s) => total + (s.amountCents ?? 0), 0)
@@ -76,6 +77,7 @@ export function ClientPage() {
   }
 
   const { client, due, dueCents, dueMinutes, unpaidBeforePayFrom } = summary
+  const credit = creditBalance(data.payments, client.id)
   const currentRate = rateAt(client, toIsoDate(new Date()))
   const otherClients = data.clients.filter((c) => c.id !== client.id).sort(byName)
   const excluded = ledger.excluded.filter((s) => s.clientId === client.id)
@@ -101,14 +103,23 @@ export function ClientPage() {
   const allSelected = shown.length > 0 && selectedSessions.length === shown.length
   const close = () => setDialog(undefined)
 
-  function pay(sessions: LedgerSession[]) {
+  /** Senza opzioni (un tocco su una riga, "pagate N") il credito che c'è viene usato da solo. */
+  function pay(sessions: LedgerSession[], options?: { advanceCents: number; useCreditCents: number }) {
     const id = newId()
-    const done = apply((d) => recordPayment(d, { id, clientId: client.id, date: toIsoDate(new Date()) }, sessions))
+    const { advanceCents, useCreditCents } = options ?? { advanceCents: 0, useCreditCents: Math.min(credit, sum(sessions)) }
+    const done = apply((d) =>
+      recordPayment(d, { id, clientId: client.id, date: toIsoDate(new Date()) }, sessions, { advanceCents, useCreditCents }),
+    )
     if (!done) return
     // Solo le pagate escono dalla selezione: un tocco su una riga non fa perdere le altre spunte.
     setSelected((current) => new Set([...current].filter((id) => !sessions.some((s) => s.id === id))))
     close()
-    toast.success(`${pluralize(sessions.length, 'sessione pagata', 'sessioni pagate')} · ${formatMoney(sum(sessions), data.currency)}`, {
+    const parts = [
+      sessions.length > 0 && `${pluralize(sessions.length, 'sessione pagata', 'sessioni pagate')} · ${formatMoney(sum(sessions), data.currency)}`,
+      useCreditCents > 0 && `${formatMoney(useCreditCents, data.currency)} dal credito`,
+      advanceCents > 0 && `anticipo ${formatMoney(advanceCents, data.currency)}`,
+    ].filter(Boolean)
+    toast.success(parts.join(' · '), {
       action: { label: 'Annulla', onClick: () => apply((d) => undoPayment(d, id)) },
     })
   }
@@ -163,6 +174,7 @@ export function ClientPage() {
               { label: 'Modifica nome, alias e note', onSelect: () => setDialog({ kind: 'edit' }) },
               { label: 'Tariffe', onSelect: () => setDialog({ kind: 'rates' }) },
               { label: 'Aggiungi sessione a mano', onSelect: () => setDialog({ kind: 'manual' }) },
+              { label: 'Registra un anticipo', onSelect: () => setDialog({ kind: 'advance' }) },
               {
                 label: client.doubtful ? 'Togli da difficili da incassare' : 'Segna come difficile da incassare',
                 onSelect: () => apply((d) => setDoubtful(d, client.id, !client.doubtful)),
@@ -189,6 +201,15 @@ export function ClientPage() {
           <p className="text-sm text-muted-foreground">
             {pluralize(due.length, 'sessione', 'sessioni')} · {formatDuration(dueMinutes)}
           </p>
+          {credit > 0 && (
+            <p className="mt-1 flex flex-wrap items-center gap-x-2 text-sm">
+              <span className="font-medium text-paid">Credito {formatMoney(credit, data.currency)}</span>
+              <span className="text-muted-foreground">
+                · anticipato, si scala quando segni pagate le sessioni
+                {dueCents > 0 && ` (restano ${formatMoney(Math.max(0, dueCents - credit), data.currency)} da incassare)`}
+              </span>
+            </p>
+          )}
         </div>
 
         {data.settings.upcomingWeeks > 0 && (
@@ -379,20 +400,26 @@ export function ClientPage() {
         ) : (
           <ul className="divide-y rounded-lg border bg-card">
             {payments.map((payment) => {
-              const total = payment.items.reduce((t, i) => t + i.amountCents, 0)
               const minutes = payment.items.reduce((t, i) => t + i.durationMinutes, 0)
               const starts = payment.items.map((i) => new Date(i.start)).sort((a, b) => a.getTime() - b.getTime())
+              const extras = [
+                payment.usedCreditCents && `${formatMoney(payment.usedCreditCents, data.currency)} dal credito`,
+                payment.creditCents && `anticipo ${formatMoney(payment.creditCents, data.currency)}`,
+              ].filter(Boolean)
               return (
                 <li key={payment.id} className="flex items-center gap-3 p-3">
                   <div className="grid flex-1 gap-0.5">
                     <span className="font-medium">Il {formatIsoDate(payment.date)}</span>
                     <span className="text-sm text-muted-foreground">
-                      {pluralize(payment.items.length, 'sessione', 'sessioni')} · {formatDuration(minutes)}
+                      {payment.items.length === 0
+                        ? 'Anticipo'
+                        : `${pluralize(payment.items.length, 'sessione', 'sessioni')} · ${formatDuration(minutes)}`}
                       {starts.length > 1 && ` · dal ${formatDay(starts[0])} al ${formatDay(starts[starts.length - 1])}`}
                       {starts.length === 1 && ` · ${formatDay(starts[0])}`}
+                      {extras.length > 0 && payment.items.length > 0 && ` · ${extras.join(' · ')}`}
                     </span>
                   </div>
-                  <span className="font-semibold text-paid tabular-nums">{formatMoney(total, data.currency)}</span>
+                  <span className="font-semibold text-paid tabular-nums">{formatMoney(receivedCents(payment), data.currency)}</span>
                   <Button variant="ghost" size="sm" onClick={() => setDialog({ kind: 'undo', paymentId: payment.id })}>
                     Annulla
                   </Button>
@@ -444,17 +471,16 @@ export function ClientPage() {
       {dialog?.kind === 'note' && <NoteDialog session={dialog.session} onOpenChange={close} />}
       {dialog?.kind === 'pay-oldest' && <PayOldestDialog due={due} currency={data.currency} onPay={pay} onOpenChange={close} />}
       {dialog?.kind === 'reminder' && <ReminderDialog summary={summary} currency={data.currency} onOpenChange={close} />}
-      <ConfirmDialog
-        open={dialog?.kind === 'confirm-pay'}
-        onOpenChange={(open) => !open && close()}
-        title="Segnare pagate?"
-        description={
-          dialog?.kind === 'confirm-pay' &&
-          `${pluralize(dialog.sessions.length, 'sessione', 'sessioni')} di ${client.name}, ${formatMoney(sum(dialog.sessions), data.currency)}.`
-        }
-        confirmLabel="Segna pagate"
-        onConfirm={() => dialog?.kind === 'confirm-pay' && pay(dialog.sessions)}
-      />
+      {(dialog?.kind === 'confirm-pay' || dialog?.kind === 'advance') && (
+        <PayDialog
+          sessions={dialog.kind === 'confirm-pay' ? dialog.sessions : []}
+          credit={credit}
+          currency={data.currency}
+          clientName={client.name}
+          onPay={pay}
+          onOpenChange={close}
+        />
+      )}
       <ConfirmDialog
         open={dialog?.kind === 'undo'}
         onOpenChange={(open) => !open && close()}

@@ -19,6 +19,14 @@ sono sessioni, prezzi concordati diversi, errori di marcatura.
   l'importo resta indefinito e viene segnalato, non contato come zero.
 - **Pagamento**: raggruppa una o più sessioni e ne salva una **fotografia** (inizio, durata,
   importo). Annullarlo libera tutte le sue sessioni in un colpo.
+- **Anticipi e credito**: chi paga in anticipo per lezioni che non esistono ancora lascia un
+  **credito in euro**, non legato a sessioni precise. Un pagamento può avere `creditCents`
+  (anticipo ricevuto, anche senza sessioni) e `usedCreditCents` (credito speso per saldare le
+  sessioni di quel pagamento). Il saldo è la somma dei due sul cliente, calcolato e non
+  salvato. Il credito si scala a mano: nel dialogo di conferma è una casella (attiva se c'è
+  credito); con un tocco su una riga o "pagate N" si usa da solo. Un anticipo già speso non
+  si annulla finché non si annullano i pagamenti che lo hanno usato. L'incassato nel
+  resoconto è `sessioni − credito usato + anticipo`.
 - **Vista per cliente**: di default tutte le sessioni non pagate; con "pagare da" impostato,
   solo quelle da quella data in poi, con totale di ore ed euro. Le non pagate precedenti
   restano contate a parte, non spariscono.

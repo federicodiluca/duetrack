@@ -75,7 +75,24 @@ export interface Payment {
   clientId: string
   date: IsoDate
   items: PaidItem[]
+  /** Anticipo: quanto ha pagato in più, per le sessioni che verranno. Resta come credito. */
+  creditCents?: number
+  /** Credito già in mano al cliente usato per saldare le sessioni di questo pagamento. */
+  usedCreditCents?: number
   note?: string
+}
+
+/** Quanto è entrato davvero con un pagamento: le sessioni saldate meno il credito usato, più l'anticipo. */
+export function receivedCents(payment: Payment): number {
+  const items = payment.items.reduce((sum, i) => sum + i.amountCents, 0)
+  return items - (payment.usedCreditCents ?? 0) + (payment.creditCents ?? 0)
+}
+
+/** Il credito di un cliente: gli anticipi ricevuti meno quanto ne è già stato usato. */
+export function creditBalance(payments: Payment[], clientId: string): number {
+  return payments
+    .filter((p) => p.clientId === clientId)
+    .reduce((sum, p) => sum + (p.creditCents ?? 0) - (p.usedCreditCents ?? 0), 0)
 }
 
 export interface Settings {

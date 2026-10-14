@@ -21,7 +21,7 @@ import {
   updateSettings,
 } from './actions'
 import { buildLedger, summarizeClient } from './ledger'
-import { type Client, type DuetrackData, emptyData } from './model'
+import { type Client, creditBalance, type DuetrackData, emptyData, receivedCents } from './model'
 import { eventToSession } from './session'
 
 const davide: Client = { id: 'davide', name: 'Davide', aliases: [], rates: [{ from: '2026-01-01', centsPerHour: 2000 }] }
@@ -66,6 +66,33 @@ describe('payments', () => {
     expect(() => recordPayment(data, { id: 'p2', clientId: 'cecilia', date: '2026-09-11' }, ledger.sessions.slice(1))).toThrow(
       ActionError,
     )
+  })
+
+  it('keeps an advance as credit, spends it on later sessions, and refuses to undo a spent advance', () => {
+    let data = setup()
+    // Paga la prima sessione (20 €) e anticipa 30 €.
+    data = recordPayment(data, { id: 'p1', clientId: 'davide', date: '2026-09-10' }, due(data).slice(0, 1), { advanceCents: 3000 })
+    expect(creditBalance(data.payments, 'davide')).toBe(3000)
+    expect(receivedCents(data.payments[0])).toBe(5000)
+
+    // La seconda (20 €) si salda col credito, che scende a 10 €.
+    data = recordPayment(data, { id: 'p2', clientId: 'davide', date: '2026-09-17' }, due(data).slice(0, 1), { useCreditCents: 2000 })
+    expect(creditBalance(data.payments, 'davide')).toBe(1000)
+    expect(receivedCents(data.payments[1])).toBe(0)
+
+    expect(() => undoPayment(data, 'p1')).toThrow(ActionError)
+    data = undoPayment(undoPayment(data, 'p2'), 'p1')
+    expect(data.payments).toEqual([])
+  })
+
+  it('records an advance on its own, and refuses more credit than the client has', () => {
+    let data = recordPayment(setup(), { id: 'p1', clientId: 'davide', date: '2026-09-10' }, [], { advanceCents: 4000 })
+    expect(data.payments[0].items).toEqual([])
+    expect(due(data)).toHaveLength(3)
+    expect(() => recordPayment(data, { id: 'p2', clientId: 'davide', date: '2026-09-11' }, due(data).slice(0, 1), { useCreditCents: 4100 })).toThrow(ActionError)
+    expect(() => recordPayment(data, { id: 'p2', clientId: 'davide', date: '2026-09-11' }, [])).toThrow(ActionError)
+    data = recordPayment(data, { id: 'p2', clientId: 'davide', date: '2026-09-11' }, due(data), { useCreditCents: 4000 })
+    expect(creditBalance(data.payments, 'davide')).toBe(0)
   })
 
   it('does not change the original object', () => {

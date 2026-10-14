@@ -31,9 +31,9 @@ export function sortClients(summaries: ClientSummary[], sort: ClientSort, lastDa
   const sorted = [...summaries]
   switch (sort) {
     case 'due-desc':
-      return sorted.sort((a, b) => b.dueCents - a.dueCents || byName(a, b))
+      return sorted.sort((a, b) => b.netCents - a.netCents || byName(a, b))
     case 'due-asc':
-      return sorted.sort((a, b) => a.dueCents - b.dueCents || byName(a, b))
+      return sorted.sort((a, b) => a.netCents - b.netCents || byName(a, b))
     case 'name':
       return sorted.sort(byName)
     case 'recent':

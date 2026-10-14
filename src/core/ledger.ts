@@ -189,6 +189,10 @@ export interface ClientSummary {
   due: LedgerSession[]
   dueMinutes: number
   dueCents: number
+  /** Credito del cliente (anticipi non ancora spesi). */
+  creditCents: number
+  /** Il dovuto al netto del credito: quello che resta davvero da incassare. */
+  netCents: number
   /** Sessioni in `due` senza importo, perché manca una tariffa per la loro data. */
   missingRate: number
   /** Sessioni non pagate prima di `payFrom`: nascoste dalla vista, ma non dimenticate. */
@@ -205,16 +209,19 @@ function isOutstanding(s: LedgerSession, client: Client): boolean {
   return !s.beforeTracking || (client.payFrom !== undefined && s.date >= client.payFrom)
 }
 
-export function summarizeClient(ledger: Ledger, client: Client): ClientSummary {
+export function summarizeClient(ledger: Ledger, client: Client, creditCents = 0): ClientSummary {
   const unpaid = ledger.sessions.filter((s) => isOutstanding(s, client))
   const payFrom = client.payFrom
   const due = payFrom ? unpaid.filter((s) => s.date >= payFrom) : unpaid
+  const dueCents = due.reduce((sum, s) => sum + (s.amountCents ?? 0), 0)
   return {
     client,
     unpaid,
     due,
     dueMinutes: due.reduce((sum, s) => sum + s.durationMinutes, 0),
-    dueCents: due.reduce((sum, s) => sum + (s.amountCents ?? 0), 0),
+    dueCents,
+    creditCents,
+    netCents: Math.max(0, dueCents - creditCents),
     missingRate: due.filter((s) => s.amountCents === undefined).length,
     unpaidBeforePayFrom: unpaid.length - due.length,
   }

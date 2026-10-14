@@ -1,7 +1,7 @@
 // Il resoconto di un periodo: quanto lavoro è stato svolto e quanto è già saldato.
 
 import type { Ledger, LedgerSession } from './ledger'
-import { type Client, type DuetrackData, type IsoDate, toIsoDate } from './model'
+import { type Client, type DuetrackData, type IsoDate, receivedCents as paymentReceived, toIsoDate } from './model'
 
 export interface ReportTotals {
   sessions: number
@@ -78,7 +78,7 @@ export function buildReport(ledger: Ledger, data: DuetrackData, from: IsoDate, t
 
   const receivedCents = data.payments
     .filter((p) => byId.has(p.clientId) && inPeriod(p.date))
-    .reduce((sum, p) => sum + p.items.reduce((s, i) => s + i.amountCents, 0), 0)
+    .reduce((sum, p) => sum + paymentReceived(p), 0)
 
   return {
     rows: [...rows.values()].filter((r) => r.sessions > 0).sort((a, b) => b.cents - a.cents),

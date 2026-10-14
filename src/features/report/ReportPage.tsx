@@ -6,7 +6,7 @@ import { Checkbox } from '@/components/ui/checkbox'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { buildLedger } from '@/core/ledger'
-import { byName, type IsoDate, toIsoDate } from '@/core/model'
+import { byName, type IsoDate, receivedCents, toIsoDate } from '@/core/model'
 import { formatMoney } from '@/core/money'
 import { buildReport, effectiveRate, isSettled, monthlyTotals, percentChange, comparablePeriods, type ReportTotals } from '@/core/report'
 import { formatDuration } from '@/core/session'
@@ -138,7 +138,7 @@ export function ReportPage() {
         clients.get(p.clientId)?.name ?? '',
         p.items.length,
         decimal(p.items.reduce((t, i) => t + i.durationMinutes, 0) / 60),
-        decimal(p.items.reduce((t, i) => t + i.amountCents, 0) / 100),
+        decimal(receivedCents(p) / 100),
       ])
     }
     downloadFile(`duetrack-pagamenti-${from}-${to}.csv`, toCsv(rows), 'text/csv;charset=utf-8')

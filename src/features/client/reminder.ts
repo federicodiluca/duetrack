@@ -10,7 +10,7 @@ const day = new Intl.DateTimeFormat('it-IT', { weekday: 'short', day: '2-digit',
  * lo modifica prima di copiarlo o condividerlo.
  */
 export function reminderText(summary: ClientSummary, currency: string, word = { one: 'lezione', many: 'lezioni' }): string {
-  const { due, dueMinutes, dueCents } = summary
+  const { due, dueMinutes, dueCents, creditCents, netCents } = summary
   const lines = due.map((s) => {
     const amount = s.amountCents === undefined ? '' : ` · ${formatMoney(s.amountCents, currency)}`
     return `- ${day.format(s.start)} · ${formatDuration(s.durationMinutes)}${amount}`
@@ -22,6 +22,9 @@ export function reminderText(summary: ClientSummary, currency: string, word = { 
     ...lines,
     '',
     `Totale: ${count}, ${formatDuration(dueMinutes)}, ${formatMoney(dueCents, currency)}.`,
+    ...(creditCents > 0
+      ? [`Hai già anticipato ${formatMoney(Math.min(creditCents, dueCents), currency)}: restano ${formatMoney(netCents, currency)}.`]
+      : []),
     'Grazie!',
   ]
     .join('\n')

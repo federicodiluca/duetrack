@@ -9,6 +9,8 @@ const summary = (name: string, dueCents: number, extra: Partial<Client> = {}): C
   due: dueCents > 0 ? [{} as LedgerSession] : [],
   dueMinutes: 0,
   dueCents,
+  creditCents: 0,
+  netCents: dueCents,
   missingRate: 0,
   unpaidBeforePayFrom: 0,
 })

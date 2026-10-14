@@ -4,7 +4,18 @@
 // Gli id si passano da fuori, così le funzioni restano deterministiche e testabili.
 
 import type { LedgerSession } from './ledger'
-import type { Client, DuetrackData, IsoDate, ManualSession, Payment, Rate, SessionId, SessionOverride, Settings } from './model'
+import {
+  type Client,
+  creditBalance,
+  type DuetrackData,
+  type IsoDate,
+  type ManualSession,
+  type Payment,
+  type Rate,
+  type SessionId,
+  type SessionOverride,
+  type Settings,
+} from './model'
 import { titleKey } from './title'
 
 export class ActionError extends Error {}
@@ -33,14 +44,26 @@ export function setDoubtful(data: DuetrackData, clientId: string, doubtful: bool
   return updateClient(data, clientId, { doubtful: doubtful || undefined })
 }
 
-/** Segna pagate le sessioni indicate, tutte non pagate e dello stesso cliente. */
+/**
+ * Segna pagate le sessioni indicate, tutte non pagate e dello stesso cliente.
+ * `advanceCents` è quanto ha pagato in più per le sessioni future: diventa credito, e senza
+ * sessioni il pagamento è il solo anticipo. `useCreditCents` salda parte delle sessioni col
+ * credito che il cliente ha già.
+ */
 export function recordPayment(
   data: DuetrackData,
   payment: { id: string; clientId: string; date: IsoDate; note?: string },
   sessions: LedgerSession[],
+  { advanceCents = 0, useCreditCents = 0 }: { advanceCents?: number; useCreditCents?: number } = {},
 ): DuetrackData {
   assertClient(data, payment.clientId)
-  if (sessions.length === 0) throw new ActionError('Nessuna sessione da segnare pagata')
+  for (const cents of [advanceCents, useCreditCents]) {
+    if (!Number.isInteger(cents) || cents < 0) throw new ActionError('L’importo deve essere un numero intero di centesimi, non negativo')
+  }
+  if (sessions.length === 0 && advanceCents === 0) throw new ActionError('Nessuna sessione da segnare pagata')
+  const total = sessions.reduce((sum, s) => sum + (s.amountCents ?? 0), 0)
+  if (useCreditCents > total) throw new ActionError('Il credito usato supera il totale delle sessioni')
+  if (useCreditCents > creditBalance(data.payments, payment.clientId)) throw new ActionError('Il credito del cliente non basta')
   for (const s of sessions) {
     if (s.clientId !== payment.clientId) throw new ActionError(`La sessione ${s.id} non è di questo cliente`)
     if (s.paymentId) throw new ActionError(`La sessione ${s.id} è già pagata`)
@@ -55,14 +78,23 @@ export function recordPayment(
       durationMinutes: s.durationMinutes,
       amountCents: s.amountCents!,
     })),
+    // Senza i campi quando non servono: il file su Drive resta uguale a prima per chi non li usa.
+    ...(advanceCents > 0 && { creditCents: advanceCents }),
+    ...(useCreditCents > 0 && { usedCreditCents: useCreditCents }),
   }
   return { ...data, payments: [...data.payments, record] }
 }
 
 /** Annulla un pagamento: tutte le sue sessioni tornano da pagare. */
 export function undoPayment(data: DuetrackData, paymentId: string): DuetrackData {
-  if (!data.payments.some((p) => p.id === paymentId)) throw new ActionError(`Pagamento sconosciuto: ${paymentId}`)
-  return { ...data, payments: data.payments.filter((p) => p.id !== paymentId) }
+  const payment = data.payments.find((p) => p.id === paymentId)
+  if (!payment) throw new ActionError(`Pagamento sconosciuto: ${paymentId}`)
+  const payments = data.payments.filter((p) => p.id !== paymentId)
+  // Un anticipo già speso non si può togliere: il credito andrebbe sotto zero.
+  if (creditBalance(payments, payment.clientId) < 0) {
+    throw new ActionError('L’anticipo è già stato usato: annulla prima i pagamenti che lo hanno speso')
+  }
+  return { ...data, payments }
 }
 
 /** Applica una correzione; i campi a undefined vengono tolti, e una correzione vuota sparisce. */

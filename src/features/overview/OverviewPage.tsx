@@ -44,8 +44,8 @@ export function OverviewPage() {
   // I difficili da incassare stanno fuori dal totale: in alto si vede quello che arriverà davvero.
   const owing = summaries.filter((s) => s.due.length > 0 && !s.client.doubtful)
   const doubtful = summaries.filter((s) => s.due.length > 0 && s.client.doubtful)
-  const totalCents = owing.reduce((sum, s) => sum + s.dueCents, 0)
-  const doubtfulCents = doubtful.reduce((sum, s) => sum + s.dueCents, 0)
+  const totalCents = owing.reduce((sum, s) => sum + s.netCents, 0)
+  const doubtfulCents = doubtful.reduce((sum, s) => sum + s.netCents, 0)
   const unclassified = unclassifiedSessions.length
   const unclassifiedTitles = new Set(unclassifiedSessions.map((s) => s.key)).size
 
@@ -265,11 +265,12 @@ function ClientRow({ summary: s, currency, detail }: { summary: ClientSummary; c
                 ? 'Tutto pagato'
                 : `${pluralize(s.due.length, 'sessione', 'sessioni')} · ${formatDuration(s.dueMinutes)}`)}
             {!detail && s.client.payFrom && ` · da ${formatIsoDate(s.client.payFrom)}`}
+            {!detail && s.creditCents > 0 && ` · credito ${formatMoney(s.creditCents, currency)}`}
           </span>
         </div>
         {s.missingRate > 0 && <Badge variant="destructive">Tariffa mancante</Badge>}
-        <span className={`font-semibold tabular-nums ${s.dueCents === 0 ? 'text-muted-foreground' : ''}`}>
-          {formatMoney(s.dueCents, currency)}
+        <span className={`font-semibold tabular-nums ${s.netCents === 0 ? 'text-muted-foreground' : ''}`}>
+          {formatMoney(s.netCents, currency)}
         </span>
         <ChevronRight className="size-4 text-muted-foreground" />
       </Link>

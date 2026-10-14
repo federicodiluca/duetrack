@@ -1,5 +1,6 @@
 import { createContext, type ReactNode, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { buildLedger, buildUpcoming, type ClientSummary, type Ledger, type LedgerSession, summarizeClient } from '@/core/ledger'
+import { creditBalance } from '@/core/model'
 import { useData } from './data'
 import { useCalendarRange, useUpcomingRange } from './useCalendarRange'
 
@@ -58,9 +59,9 @@ export function CalendarProvider({ children }: { children: ReactNode }) {
   const summaries = useMemo(
     () =>
       data.clients
-        .map((client) => summarizeClient(ledger, client))
-        .sort((a, b) => b.dueCents - a.dueCents || a.client.name.localeCompare(b.client.name, 'it')),
-    [ledger, data.clients],
+        .map((client) => summarizeClient(ledger, client, creditBalance(data.payments, client.id)))
+        .sort((a, b) => b.netCents - a.netCents || a.client.name.localeCompare(b.client.name, 'it')),
+    [ledger, data.clients, data.payments],
   )
   // Adesso è l'ora della lettura: tra una lettura e l'altra la lista non cambia.
   const upcoming = useMemo(
