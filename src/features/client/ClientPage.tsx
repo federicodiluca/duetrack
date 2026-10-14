@@ -31,7 +31,7 @@ import { formatDay, formatIsoDate, formatMonth, formatTime, pluralize } from '@/
 import { newId } from '@/lib/id'
 import { useCalendar } from '@/state/calendar'
 import { useData } from '@/state/data'
-import { AmountDialog, ManualSessionDialog, NoteDialog, PayDialog, PayOldestDialog, RatesDialog, ReminderDialog } from './dialogs'
+import { AdvanceDialog, AmountDialog, ManualSessionDialog, NoteDialog, PayOldestDialog, RatesDialog, ReminderDialog } from './dialogs'
 import { SessionRow } from './SessionRow'
 import { ALL_SESSIONS, filterSessions, type SessionFilter, type SessionKind, type SessionOrder, sessionMonths, sessionsOfKind } from './sessionFilter'
 
@@ -78,6 +78,9 @@ export function ClientPage() {
 
   const { client, due, dueCents, dueMinutes, unpaidBeforePayFrom } = summary
   const credit = creditBalance(data.payments, client.id)
+  // Quanto vale una lezione pagata in anticipo: la media di quelle da pagare, altrimenti un'ora alla tariffa di oggi.
+  const priced = due.filter((s) => s.amountCents !== undefined)
+  const lessonCents = priced.length > 0 ? Math.round(sum(priced) / priced.length) : (rateAt(client, toIsoDate(new Date())) ?? 0)
   const currentRate = rateAt(client, toIsoDate(new Date()))
   const otherClients = data.clients.filter((c) => c.id !== client.id).sort(byName)
   const excluded = ledger.excluded.filter((s) => s.clientId === client.id)
@@ -469,18 +472,26 @@ export function ClientPage() {
       {dialog?.kind === 'manual' && <ManualSessionDialog client={client} onOpenChange={close} />}
       {dialog?.kind === 'amount' && <AmountDialog session={dialog.session} onOpenChange={close} />}
       {dialog?.kind === 'note' && <NoteDialog session={dialog.session} onOpenChange={close} />}
-      {dialog?.kind === 'pay-oldest' && <PayOldestDialog due={due} currency={data.currency} onPay={pay} onOpenChange={close} />}
-      {dialog?.kind === 'reminder' && <ReminderDialog summary={summary} currency={data.currency} onOpenChange={close} />}
-      {(dialog?.kind === 'confirm-pay' || dialog?.kind === 'advance') && (
-        <PayDialog
-          sessions={dialog.kind === 'confirm-pay' ? dialog.sessions : []}
-          credit={credit}
-          currency={data.currency}
-          clientName={client.name}
-          onPay={pay}
-          onOpenChange={close}
-        />
+      {dialog?.kind === 'pay-oldest' && (
+        <PayOldestDialog due={due} credit={credit} lessonCents={lessonCents} currency={data.currency} onPay={pay} onOpenChange={close} />
       )}
+      {dialog?.kind === 'advance' && (
+        <AdvanceDialog clientName={client.name} onPay={(advanceCents) => pay([], { advanceCents, useCreditCents: 0 })} onOpenChange={close} />
+      )}
+      {dialog?.kind === 'reminder' && <ReminderDialog summary={summary} currency={data.currency} onOpenChange={close} />}
+      <ConfirmDialog
+        open={dialog?.kind === 'confirm-pay'}
+        onOpenChange={(open) => !open && close()}
+        title="Segnare pagate?"
+        description={
+          dialog?.kind === 'confirm-pay' &&
+          `${pluralize(dialog.sessions.length, 'sessione', 'sessioni')} di ${client.name}, ${formatMoney(sum(dialog.sessions), data.currency)}${
+            credit > 0 ? `, di cui ${formatMoney(Math.min(credit, sum(dialog.sessions)), data.currency)} dal credito` : ''
+          }.`
+        }
+        confirmLabel="Segna pagate"
+        onConfirm={() => dialog?.kind === 'confirm-pay' && pay(dialog.sessions)}
+      />
       <ConfirmDialog
         open={dialog?.kind === 'undo'}
         onOpenChange={(open) => !open && close()}

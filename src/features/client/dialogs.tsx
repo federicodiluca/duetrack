@@ -3,7 +3,6 @@ import { useState } from 'react'
 import { toast } from 'sonner'
 import { Picker } from '@/components/Picker'
 import { Button } from '@/components/ui/button'
-import { Checkbox } from '@/components/ui/checkbox'
 import { Dialog,DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
@@ -120,32 +119,54 @@ export function NoteDialog({ session, onOpenChange }: DialogProps & { session: L
   )
 }
 
-/** "Pagate N lezioni": salda le N sessioni più vecchie tra quelle mostrate. */
+/** Quante sessioni al massimo si possono pagare in una volta: oltre le dovute sono anticipo. */
+const MAX_PAID_AHEAD = 60
+
+/**
+ * "Pagate N sessioni": salda le N più vecchie tra quelle mostrate. Se N supera quelle
+ * dovute, il resto è pagato in anticipo e va a credito, a un importo stimato che si può correggere.
+ */
 export function PayOldestDialog({
   due,
+  credit,
+  lessonCents,
   currency,
   onPay,
   onOpenChange,
-}: DialogProps & { due: LedgerSession[]; currency: string; onPay: (sessions: LedgerSession[]) => void }) {
+}: DialogProps & {
+  due: LedgerSession[]
+  credit: number
+  /** Importo stimato di una sessione futura. */
+  lessonCents: number
+  currency: string
+  onPay: (sessions: LedgerSession[], options: { advanceCents: number; useCreditCents: number }) => void
+}) {
   const [count, setCount] = useState('1')
-  const n = Math.min(Math.max(0, Math.trunc(Number(count)) || 0), due.length)
+  const [advanceText, setAdvanceText] = useState<string>()
+  const n = Math.min(Math.max(0, Math.trunc(Number(count)) || 0), MAX_PAID_AHEAD)
   const picked = due.slice(0, n)
+  const ahead = Math.max(0, n - due.length)
   const total = picked.reduce((sum, s) => sum + (s.amountCents ?? 0), 0)
   const minutes = picked.reduce((sum, s) => sum + s.durationMinutes, 0)
+  const advanceCents = advanceText === undefined ? ahead * lessonCents : parseMoney(advanceText)
+  const useCreditCents = Math.min(credit, total)
+
+  function submit(event: React.FormEvent) {
+    event.preventDefault()
+    if (n === 0 || advanceCents === undefined) return
+    onPay(picked, { advanceCents: ahead > 0 ? advanceCents : 0, useCreditCents })
+  }
 
   return (
     <Dialog open onOpenChange={onOpenChange}>
       <DialogContent>
-        <form
-          onSubmit={(e) => {
-            e.preventDefault()
-            if (n > 0) onPay(picked)
-          }}
-          className="grid gap-4"
-        >
+        <form onSubmit={submit} className="grid gap-4">
           <DialogHeader>
             <DialogTitle>Pagate N sessioni</DialogTitle>
-            <DialogDescription>Segna pagate le sessioni più vecchie, nell’ordine in cui le vedi.</DialogDescription>
+            <DialogDescription>
+              Segna pagate le sessioni più vecchie, nell’ordine in cui le vedi. Se ne scrivi più di quelle da pagare, le altre
+              sono lezioni anticipate e vanno a credito.
+            </DialogDescription>
           </DialogHeader>
           <div className="grid gap-2">
             <Label htmlFor="pay-count">Quante sessioni</Label>
@@ -153,21 +174,40 @@ export function PayOldestDialog({
               id="pay-count"
               type="number"
               min={1}
-              max={due.length}
+              max={MAX_PAID_AHEAD}
               value={count}
               onChange={(e) => setCount(e.target.value)}
               className="w-28"
               autoFocus
             />
           </div>
-          {n > 0 && (
+          {picked.length > 0 && (
             <p className="text-sm text-muted-foreground">
-              Dal {formatDay(picked[0].start)} al {formatDay(picked[n - 1].start)}: {formatDuration(minutes)},{' '}
+              {pluralize(picked.length, 'sessione', 'sessioni')} dal {formatDay(picked[0].start)} al{' '}
+              {formatDay(picked[picked.length - 1].start)}: {formatDuration(minutes)},{' '}
               <span className="font-semibold text-foreground">{formatMoney(total, currency)}</span>
+              {useCreditCents > 0 && ` (${formatMoney(useCreditCents, currency)} dal credito)`}
             </p>
           )}
+          {ahead > 0 && (
+            <div className="grid gap-2">
+              <Label htmlFor="pay-ahead">
+                {pluralize(ahead, 'lezione anticipata', 'lezioni anticipate')}: importo (€)
+              </Label>
+              <Input
+                id="pay-ahead"
+                inputMode="decimal"
+                value={advanceText ?? centsToInput(ahead * lessonCents)}
+                onChange={(e) => setAdvanceText(e.target.value)}
+                className="w-40"
+              />
+              <p className="text-sm text-muted-foreground">
+                Stimato in base alle altre sessioni ({formatMoney(lessonCents, currency)} l’una): correggilo se serve.
+              </p>
+            </div>
+          )}
           <DialogFooter>
-            <Button type="submit" disabled={n === 0}>
+            <Button type="submit" disabled={n === 0 || advanceCents === undefined}>
               Segna pagate
             </Button>
           </DialogFooter>
@@ -177,38 +217,20 @@ export function PayOldestDialog({
   )
 }
 
-/**
- * Conferma di un pagamento: le sessioni scelte (anche nessuna, per un anticipo puro), il
- * credito da usare se c'è, e quanto ha pagato in più per le sessioni che verranno.
- */
-export function PayDialog({
-  sessions,
-  credit,
-  currency,
+/** Un anticipo senza sessioni da saldare: soldi dati prima, che restano come credito. */
+export function AdvanceDialog({
   clientName,
   onPay,
   onOpenChange,
-}: DialogProps & {
-  sessions: LedgerSession[]
-  credit: number
-  currency: string
-  clientName: string
-  onPay: (sessions: LedgerSession[], options: { advanceCents: number; useCreditCents: number }) => void
-}) {
-  const total = sessions.reduce((sum, s) => sum + (s.amountCents ?? 0), 0)
-  const [useCredit, setUseCredit] = useState(true)
-  const [advance, setAdvance] = useState('')
+}: DialogProps & { clientName: string; onPay: (cents: number) => void }) {
+  const [value, setValue] = useState('')
   const [error, setError] = useState<string>()
-  const onlyAdvance = sessions.length === 0
-  const used = useCredit && !onlyAdvance ? Math.min(credit, total) : 0
-  const advanceCents = advance.trim() ? parseMoney(advance) : 0
-  const received = total - used + (advanceCents ?? 0)
 
   function submit(event: React.FormEvent) {
     event.preventDefault()
-    if (advanceCents === undefined) return setError('Scrivi un importo in euro, es. 30 o 27,50')
-    if (onlyAdvance && advanceCents === 0) return setError('Scrivi quanto ha anticipato')
-    onPay(sessions, { advanceCents, useCreditCents: used })
+    const cents = parseMoney(value)
+    if (!cents) return setError('Scrivi un importo in euro, es. 30 o 27,50')
+    onPay(cents)
   }
 
   return (
@@ -216,44 +238,18 @@ export function PayDialog({
       <DialogContent>
         <form onSubmit={submit} className="grid gap-4">
           <DialogHeader>
-            <DialogTitle>{onlyAdvance ? 'Registra un anticipo' : 'Segnare pagate?'}</DialogTitle>
+            <DialogTitle>Registra un anticipo</DialogTitle>
             <DialogDescription>
-              {onlyAdvance
-                ? `Soldi che ${clientName} ha già dato per le prossime sessioni: restano come credito.`
-                : `${pluralize(sessions.length, 'sessione', 'sessioni')} di ${clientName}, ${formatMoney(total, currency)}.`}
+              Soldi che {clientName} ha già dato per le prossime sessioni: restano come credito.
             </DialogDescription>
           </DialogHeader>
-          {!onlyAdvance && credit > 0 && (
-            <div className="flex items-center gap-3">
-              <Checkbox id="use-credit" checked={useCredit} onCheckedChange={(c) => setUseCredit(c === true)} />
-              <Label htmlFor="use-credit" className="cursor-pointer">
-                Usa il credito ({formatMoney(credit, currency)}): ne scalo {formatMoney(Math.min(credit, total), currency)}
-              </Label>
-            </div>
-          )}
           <div className="grid gap-2">
-            <Label htmlFor="advance">{onlyAdvance ? 'Importo anticipato (€)' : 'Ha pagato anche in anticipo? (€, facoltativo)'}</Label>
-            <Input
-              id="advance"
-              inputMode="decimal"
-              value={advance}
-              onChange={(e) => setAdvance(e.target.value)}
-              placeholder="es. 60"
-              className="w-40"
-              autoFocus={onlyAdvance}
-            />
-            {!onlyAdvance && (
-              <p className="text-sm text-muted-foreground">Va a credito e si scala quando segni pagate le sessioni successive.</p>
-            )}
+            <Label htmlFor="advance">Importo (€)</Label>
+            <Input id="advance" inputMode="decimal" value={value} onChange={(e) => setValue(e.target.value)} placeholder="es. 60" className="w-40" autoFocus />
           </div>
           <FormError message={error} />
-          {!onlyAdvance && (
-            <p className="text-sm text-muted-foreground">
-              Incassi <span className="font-semibold text-foreground">{formatMoney(received, currency)}</span>
-            </p>
-          )}
           <DialogFooter>
-            <Button type="submit">{onlyAdvance ? 'Registra anticipo' : 'Segna pagate'}</Button>
+            <Button type="submit">Registra anticipo</Button>
           </DialogFooter>
         </form>
       </DialogContent>
